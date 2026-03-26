@@ -9,16 +9,13 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#2C2C2C;overflow:hidden;font-family:'Noto Sans SC',system-ui,sans-serif;color:#F5F3EE;touch-action:none}
 canvas{display:block}
-
 .hud-top{position:fixed;top:0;left:0;right:0;padding:16px 20px;z-index:20;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
 .hud-top *{pointer-events:auto}
 .logo{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;letter-spacing:8px;color:#C23A2E}
 .logo-sub{font-size:0.55rem;color:#6B6660;letter-spacing:3px;margin-top:2px;font-family:'Noto Serif SC',serif}
-
 .view-btns{display:flex;gap:6px}
 .view-btn{padding:6px 14px;border-radius:16px;border:1px solid rgba(196,185,154,0.3);background:transparent;color:#6B6660;font-size:0.7rem;cursor:pointer;transition:all 0.3s;font-family:inherit}
 .view-btn.active,.view-btn:hover{background:rgba(194,58,46,0.08);border-color:#C23A2E;color:#C23A2E}
-
 .panel{position:fixed;bottom:0;left:0;right:0;background:rgba(245,243,238,0.97);backdrop-filter:blur(20px);border-top:2px solid #C23A2E;padding:20px;z-index:30;transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);max-height:50vh;overflow-y:auto;border-radius:20px 20px 0 0;color:#2C2C2C}
 .panel.show{transform:translateY(0)}
 .panel-handle{width:40px;height:4px;border-radius:2px;background:#C4B99A;margin:0 auto 16px}
@@ -28,25 +25,22 @@ canvas{display:block}
 .panel .tags-area{margin-top:10px}
 .panel .tag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:0.65rem;margin:2px;background:rgba(82,114,97,0.1);color:#527261;border:1px solid rgba(82,114,97,0.2)}
 .panel-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#6B6660;font-size:1.2rem;cursor:pointer}
-
 .hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:0.7rem;color:rgba(196,185,154,0.6);z-index:10;pointer-events:none;transition:opacity 0.5s}
-
 .hud-stats{position:fixed;top:60px;right:20px;z-index:20;text-align:right;pointer-events:none}
 .hud-stat{font-size:0.65rem;color:#6B6660;margin-bottom:4px}
 .hud-stat span{color:#C23A2E;font-weight:700;font-size:0.8rem;font-family:'Cormorant Garamond',serif}
-
 .legend{position:fixed;bottom:20px;left:20px;z-index:20;pointer-events:none}
 .legend-item{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.65rem;color:#C4B99A}
 .legend-dot{width:8px;height:8px;border-radius:50%}
+.breadcrumb{position:fixed;top:56px;left:20px;z-index:20;display:flex;align-items:center;gap:4px;font-size:0.75rem;pointer-events:auto}
+.bc-item{color:#6B6660;cursor:pointer;transition:color 0.2s}
+.bc-item:hover,.bc-item.active{color:#C23A2E}
+.bc-sep{color:#4A4A4A;font-size:0.6rem}
 </style>
 </head>
 <body>
-
 <div class="hud-top">
-  <div>
-    <div class="logo">COSMO</div>
-    <div class="logo-sub">合序智能 / 低空履约平台</div>
-  </div>
+  <div><div class="logo">COSMO</div><div class="logo-sub">合序智能 / 低空履约平台</div></div>
   <div class="view-btns">
     <button class="view-btn active" data-view="full">Full</button>
     <button class="view-btn" data-view="sim">SIM</button>
@@ -55,24 +49,21 @@ canvas{display:block}
     <button class="view-btn" data-view="flow">Flow</button>
   </div>
 </div>
-
+<div class="breadcrumb" id="breadcrumb"></div>
 <div class="hud-stats">
   <div class="hud-stat"><span>31</span> Modules</div>
   <div class="hud-stat"><span>7,283</span> Tests</div>
   <div class="hud-stat"><span>6</span> Layers</div>
   <div class="hud-stat"><span>3</span> Services</div>
 </div>
-
 <div class="legend">
   <div class="legend-item"><div class="legend-dot" style="background:#C23A2E"></div>SIM / A-Segment</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#2C2C2C;border:1px solid #C4B99A"></div>SP / B-Segment</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#C4B99A"></div>SP / B-Segment</div>
   <div class="legend-item"><div class="legend-dot" style="background:#527261"></div>Web / C-Segment</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#C4B99A"></div>Supply Resources</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#946B00"></div>Supply Resources</div>
   <div class="legend-item"><div class="legend-dot" style="background:#4A7B8C"></div>External</div>
 </div>
-
-<div class="hint" id="hint">Drag / Pinch zoom / Tap for details</div>
-
+<div class="hint" id="hint">Tap node to drill down / Pinch zoom / Drag</div>
 <div class="panel" id="panel">
   <div class="panel-handle"></div>
   <button class="panel-close" onclick="closePanel()">x</button>
@@ -81,390 +72,397 @@ canvas{display:block}
   <p id="panel-body"></p>
   <div class="tags-area" id="panel-tags"></div>
 </div>
-
 <canvas id="c"></canvas>
-
 <script>
-var canvas = document.getElementById('c');
-var ctx = canvas.getContext('2d');
-var W, H, dpr;
+var canvas=document.getElementById('c'),ctx=canvas.getContext('2d'),W,H,dpr;
+function resize(){dpr=window.devicePixelRatio||1;W=window.innerWidth;H=window.innerHeight;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
+resize();window.addEventListener('resize',resize);
+var camX=0,camY=0,camScale=1,targetCamX=0,targetCamY=0,targetCamScale=1;
+var C={vermillion:'#C23A2E',pine:'#527261',bamboo:'#C4B99A',stone:'#6B6660',ricePaper:'#F5F3EE',info:'#4A7B8C',warning:'#946B00',inkDark:'#2C2C2C'};
+var GCOL={sim:C.vermillion,sp:C.bamboo,web:C.pine,supply:C.warning,external:C.info};
+var nodes=[],edges=[],drillStack=[],expandedNode=null;
 
-function resize() {
-  dpr = window.devicePixelRatio || 1;
-  W = window.innerWidth; H = window.innerHeight;
-  canvas.width = W * dpr; canvas.height = H * dpr;
-  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-resize();
-window.addEventListener('resize', resize);
-
-var camX = 0, camY = 0, camScale = 1;
-var targetCamX = 0, targetCamY = 0, targetCamScale = 1;
-
-// COSMO palette
-var C = {
-  vermillion: '#C23A2E',  // A段 朱砂
-  ink: '#F5F3EE',         // on dark bg, use rice-paper for ink text
-  inkDark: '#2C2C2C',     // B段 墨
-  pine: '#527261',        // C段 松
-  bamboo: '#C4B99A',      // 竹 辅助
-  stone: '#6B6660',       // 石 次要
-  ricePaper: '#F5F3EE',   // 宣纸
-  info: '#4A7B8C',        // 信息蓝
-  warning: '#946B00'      // 深金
-};
-
-var GCOLORS = {
-  sim: C.vermillion,
-  sp: C.bamboo,
-  web: C.pine,
-  supply: C.warning,
-  external: C.info
-};
-
-var nodes = [], edges = [];
-
-function N(label, group, x, y, r, type, title, desc, tags) {
-  var n = { id: nodes.length, label:label, group:group, x:x, y:y, ox:x, oy:y, vx:0, vy:0, r:r, type:type, title:title||label, desc:desc||'', tags:tags||[], visible:true, dragging:false };
+function N(label,group,x,y,r,type,title,desc,tags,parent){
+  var n={id:nodes.length,label:label,group:group,x:x,y:y,ox:x,oy:y,vx:0,vy:0,r:r,type:type,title:title||label,desc:desc||'',tags:tags||[],visible:true,dragging:false,parent:parent||null,children:[],level:parent?parent.level+1:0};
   nodes.push(n);
+  if(parent)parent.children.push(n);
   return n;
 }
+function E(a,b,label,width,animated){edges.push({a:a,b:b,label:label||'',width:width||1,animated:!!animated});}
 
-function E(a, b, label, width, animated) {
-  edges.push({ a:a, b:b, label:label||'', width:width||1, animated:!!animated });
+// ===== L1: SERVICES =====
+var sim=N('SIM Engine','sim',0,-220,44,'service','SIM Engine | Port 4010','虚拟世界的因子状态源。管理仿真时钟、因子状态、行为策略、订单生成。已完成配置化+阶段模型重写(Phase 0-7)。',['Port 4010','WebSocket','REST API']);
+var sp=N('SP Platform','sp',0,30,54,'service','SP Platform | Port 4000 | Decision Hub','系统唯一决策中枢。六层编排(L1-L6)、渐进式锁定、订单状态机、ETA管理。God Object已拆分(3039->423行,11模块)。',['Port 4000','L1-L6','11 Modules']);
+var web=N('Web Console','web',0,280,40,'service','Web Console | Port 3000 | Next.js','控制塔视角前端。实时地图三模式、仿真控制台三态、因子监控7卡片、AI浮动面板。rAF 60fps。',['Port 3000','Next.js','Tailwind']);
+
+// ===== L2: SIM MODULES =====
+var simClock=N('Clock','sim',-220,-360,16,'module','Clock Engine','仿真时钟管理，倍速控制(1x/2x/5x/10x)。驱动所有因子时间轴推进。7组独立计时序列。',['SimulationClock','TimeService'],sim);
+var simFactor=N('Factor State','sim',-80,-380,16,'module','Factor State Manager','管理无人机/骑手/VAS站点实时状态。API查询+WebSocket通知。GPS/电池/任务实时更新。',['FactorManagement','FactorExecution'],sim);
+var simBehavior=N('Behavior','sim',60,-380,14,'module','Behavior Strategy','模拟无订单时因子自发行为。随机事件(故障/天气/拒单)。',['Simulators','Strategy'],sim);
+var simOrder=N('Order Gen','sim',200,-360,14,'module','Order Generator','模拟外部订单，已验证2000单。目标总量模式。',['OrderGenerator','DataGenerator'],sim);
+var simRoute=N('Route API','sim',-180,-290,12,'module','Route Distance','高德API真实路线距离+ETA。带缓存。',['GeoService','Cache'],sim);
+var simConfig=N('Config','sim',180,-290,12,'module','Config Registry','5组配置：停留D1-D13/速度/电池/天气/阶段序列。',['ConfigManager','Presets'],sim);
+var simStage=N('Stage Model','sim',-40,-310,12,'module','Phase Stage Model','7组独立计时序列。精确阶段推进和ETA。',['PhaseManager','StageSequence'],sim);
+var simEvent=N('Events','sim',120,-310,11,'module','Event Bridge','事件桥接和随机事件触发系统。',['EventBridge','Monitoring'],sim);
+
+// ===== L2: SP MODULES =====
+var spOrder=N('Order Engine','sp',-300,-60,20,'module','Order Engine','订单全生命周期状态机。Hot/Cold双层持久化。',['StateMachine','Orchestrator','Scheduler'],sp);
+var spSKU=N('SKU Orch','sp',-300,70,16,'module','SKU Orchestration','根据SKU配置组合A-B-C三段资源包。',['Coordinator','Services'],sp);
+var spLock=N('Prog Lock','sp',-220,140,14,'module','Progressive Lock','三级锁定：软锁-硬锁-原子锁。',['ETALock','StatusLock','VASBundle'],sp);
+var spETA=N('ETA Track','sp',300,-60,18,'module','ETA Tracking','ETA计算滚动更新。偏差预警，R4预派发。',['Calculator','History','Notification'],sp);
+var spSupply=N('Supply Reg','sp',300,50,18,'module','Supply Registry','三类资源注册：VAS/OP/骑手平台。',['Adapters','Services'],sp);
+var spBid=N('Rider Bid','sp',300,140,14,'module','Rider Bidding','广播需求，收集承诺，择优选择。',['Coordinator','QuotationSelector'],sp);
+var spAI=N('AI 26 Tools','sp',-120,140,14,'module','LLM Assistant','26个AI工具。CQRS读优化。',['Executor','Context','Prompt'],sp);
+var spExc=N('Exception','sp',60,140,14,'module','Exception Handler','异常分级。电池三层动态阈值。',['Classifier','GroundFallback','Cancellation'],sp);
+var spSettle=N('Settlement','sp',160,140,12,'module','Settlement','多方分账结算。',['Integration'],sp);
+var spDispatch=N('Dispatch','sp',-40,155,12,'module','Dispatch Lock','资源并发控制。',['LockService'],sp);
+var spMonitor=N('Monitor','sp',220,-20,13,'module','Automation Monitor','自动化监控和告警。',['AlertService'],sp);
+
+// ===== L2: WEB MODULES =====
+var webMap=N('Map View','web',-220,350,16,'module','Map View','DJI/Uber/DoorDash三模式。双层Polyline rAF 60fps。',['RouteAnimation','GPS Tracking'],web);
+var webSim=N('Sim Lab','web',-80,370,14,'module','Sim Lab','ConsoleShell三态。配置三步引导。',['Console','FactorRegistry','Monitor'],web);
+var webDash=N('Dashboard','web',60,370,14,'module','Dashboard','订单统计、实时因子、活动日志。',['Charts','ActivityLog'],web);
+var webOrder=N('Orders','web',190,350,14,'module','Orders','七段进度可视化。段落映射统一。',['OrderDetail','Timeline'],web);
+var webAI=N('AI Panel','web',-150,320,12,'module','AI Panel','浮动入口，拖拽面板。',['FloatingEntry','ToolCards'],web);
+var webFactor=N('Factor Mon','web',140,320,12,'module','Factor Monitor','7类因子实时状态面板。',['FactorCards','StatusBadge'],web);
+
+// ===== L3: ORDER ENGINE sub-components =====
+N('StateMachine','sp',0,0,10,'sub','StateMachineEngine','订单状态流转引擎。定义所有合法状态转换，拒绝非法跳转。含状态审计。',['States','Transitions','Audit'],spOrder);
+N('Orchestrator','sp',0,0,10,'sub','OrderOrchestrator','订单编排器。协调L1-L6六层编排流程，决定每个订单的执行路径。',['Templates','Integration'],spOrder);
+N('Scheduler','sp',0,0,10,'sub','OrderScheduler','订单调度器。管理订单队列优先级，处理批量订单的调度分配。',['Priority Queue','Batch'],spOrder);
+N('Fulfillment','sp',0,0,10,'sub','FulfillmentTracker','履约追踪器。跟踪A-B-C三段执行进度，触发段间衔接。',['A-B-C Tracking','Handoff'],spOrder);
+N('Compensation','sp',0,0,9,'sub','CompensationManager','补偿管理。订单异常时的回滚和补偿操作，保障数据一致性。',['Rollback','Retry'],spOrder);
+N('Analyzer','sp',0,0,9,'sub','OrderAnalyzer','订单分析。性能指标、完成率、异常率等数据统计。',['Analytics','Metrics'],spOrder);
+
+// ===== L3: PROGRESSIVE LOCK =====
+N('ETA Lock','sp',0,0,10,'sub','ETALockTrigger','ETA触发硬锁。当ETA进入阈值范围，自动升级锁定级别。',['Threshold','Trigger'],spLock);
+N('Status Lock','sp',0,0,10,'sub','OrderStatusLockTrigger','状态触发软锁。订单进入特定状态时自动锁定相关资源。',['StatusWatch','AutoLock'],spLock);
+N('VAS Bundle','sp',0,0,10,'sub','VASBundleLockService','VAS资源包原子锁定。起降台+能源+人员必须同时锁定或同时释放。',['Atomic Lock','Release'],spLock);
+N('Conflict','sp',0,0,9,'sub','TimeWindowConflictService','时间窗口冲突检测。防止同一时段资源被多次锁定。',['Detection','Resolution'],spLock);
+
+// ===== L3: ETA TRACKING =====
+N('Calculator','sp',0,0,10,'sub','ETACalculator','ETA核心计算引擎。基于距离、速度、停留时间动态计算。',['Distance','Speed','Dwell'],spETA);
+N('History','sp',0,0,9,'sub','ETAHistoryService','ETA历史记录。追踪ETA变化曲线，用于偏差分析。',['Timeline','Drift'],spETA);
+N('Notification','sp',0,0,9,'sub','ETANotificationService','ETA通知服务。偏差超阈值时触发告警和预派发。',['Alert','R4 Dispatch'],spETA);
+N('EventSub','sp',0,0,9,'sub','EventSubscriptionManager','事件订阅管理。监听因子状态变化，触发ETA重算。',['Subscribe','Recalculate'],spETA);
+
+// ===== L3: RIDER BIDDING =====
+N('Coordinator','sp',0,0,10,'sub','RiderBiddingCoordinator','竞价协调器。管理广播->收集->评估->选择全流程。',['Broadcast','Evaluate'],spBid);
+N('Selector','sp',0,0,9,'sub','QuotationSelector','报价选择器。多维度评估平台报价(时效/费用/保障率)，择优。',['Scoring','Ranking'],spBid);
+
+// ===== L3: EXCEPTION =====
+N('Classifier','sp',0,0,10,'sub','ExceptionClassifier','异常分类器。根据异常类型和严重程度自动分级。',['Severity','Category'],spExc);
+N('Fallback','sp',0,0,10,'sub','GroundFallbackService','地面兜底方案。空中异常时自动切换为纯地面配送。',['Reroute','Degrade'],spExc);
+N('Cancel','sp',0,0,9,'sub','CancellationBoundaryService','取消边界判定。确定订单在哪个阶段还能取消，哪个不能。',['Boundary','Refund'],spExc);
+
+// ===== L3: LLM ASSISTANT =====
+N('Executor','sp',0,0,10,'sub','Tool Executor','工具执行器。解析AI意图，路由到26个工具中的对应工具执行。',['Routing','Execution'],spAI);
+N('Context','sp',0,0,9,'sub','Context Builder','上下文构建器。收集订单/资源/因子数据，构建AI查询上下文。',['DataCollect','Format'],spAI);
+N('Prompt','sp',0,0,9,'sub','Prompt Manager','提示词管理。管理系统提示词和工具描述，优化AI输出质量。',['Templates','Optimize'],spAI);
+
+// ===== L3: SIM CLOCK =====
+N('SimClock','sim',0,0,10,'sub','SimulationClock','核心时钟。管理仿真时间推进，支持暂停/恢复/倍速。',['Tick','Speed Control'],simClock);
+N('TimeService','sim',0,0,9,'sub','SimulationTimeService','时间服务。提供统一时间源，所有模块通过此服务获取当前仿真时间。',['Unified Source','Sync'],simClock);
+N('ModeCtrl','sim',0,0,9,'sub','ModeController','模式控制。管理仿真模式切换(配置/运行/回顾)。',['Modes','Transition'],simClock);
+
+// ===== L3: FACTOR STATE =====
+N('FactorMgmt','sim',0,0,10,'sub','Factor Management','因子注册和生命周期管理。创建/销毁/状态变更。',['Lifecycle','Registry'],simFactor);
+N('FactorExec','sim',0,0,10,'sub','Factor Execution','因子行为执行引擎。驱动因子按时间轴执行任务。',['TaskRunner','Movement'],simFactor);
+N('FactorPlat','sim',0,0,9,'sub','Factor Platform','因子平台适配器。适配不同类型因子(无人机/骑手/VAS)的差异。',['Drone','Rider','VAS'],simFactor);
+
+// ===== L3: SIM CONFIG =====
+N('CfgMgr','sim',0,0,10,'sub','ConfigManager','配置管理器。加载/验证/热更新5组配置。',['Load','Validate','HotReload'],simConfig);
+N('Presets','sim',0,0,9,'sub','Engine Presets','预设方案。快速切换不同场景配置(城市/郊区/恶劣天气等)。',['Scenarios','Quick Switch'],simConfig);
+
+// ===== L3: WEB MAP =====
+N('RouteAnim','web',0,0,10,'sub','Route Animation','双层Polyline路线动画系统。rAF 60fps，平滑轨迹渲染。',['Polyline','rAF'],webMap);
+N('GPSTrack','web',0,0,9,'sub','GPS Tracking','实时GPS轨迹追踪。因子位置实时更新在地图上。',['Realtime','Markers'],webMap);
+N('MapModes','web',0,0,9,'sub','Map Modes','DJI/Uber/DoorDash三种地图视角切换。',['DJI','Uber','DoorDash'],webMap);
+
+// ===== L3: SIM LAB =====
+N('ConShell','web',0,0,10,'sub','ConsoleShell','三态控制台。配置态/运行态/回顾态无缝切换。',['Config','Running','Review'],webSim);
+N('FactReg','web',0,0,9,'sub','Factor Registry','因子注册面板。可视化管理仿真因子的注册和配置。',['Register','Configure'],webSim);
+N('MonPanel','web',0,0,9,'sub','Monitor Panel','因子监控7卡片+活动日志侧栏。实时数据流。',['7 Cards','Activity Log'],webSim);
+
+// ===== EDGES =====
+E(sim,sp,'WebSocket + REST',3,true); E(sp,web,'Next.js + WS',3,true);
+// SIM L2
+E(simClock,sim,'',1);E(simFactor,sim,'',1);E(simBehavior,sim,'',1);E(simOrder,sim,'',1);
+E(simRoute,sim,'',1);E(simConfig,sim,'',1);E(simStage,sim,'',1);E(simEvent,sim,'',1);
+// SP L2
+E(spOrder,sp,'',1);E(spSKU,sp,'',1);E(spLock,sp,'',1);E(spETA,sp,'',1);
+E(spSupply,sp,'',1);E(spBid,sp,'',1);E(spAI,sp,'',1);E(spExc,sp,'',1);
+E(spSettle,sp,'',1);E(spDispatch,sp,'',1);E(spMonitor,sp,'',1);
+// Web L2
+E(webMap,web,'',1);E(webSim,web,'',1);E(webDash,web,'',1);
+E(webOrder,web,'',1);E(webAI,web,'',1);E(webFactor,web,'',1);
+// Supply
+var vas=N('VAS Station','supply',-380,30,24,'resource','VAS Station | Direct Registration','起降场。直接注册SP(站点/台位/人员)。资源包=起降台+能源+人员(原子组合)。飞行=托管权转移。',['Time Slot','Resource Bundle','Cargo','Landing Pad']);
+var op=N('OP Operator','supply',380,30,24,'resource','OP Operator | Direct Registration','无人机资产所有者。直接注册SP(运营商/机型/个体机)。物权OP，托管VAS，选机SP，放飞审批OP。',['Drone Fleet','Flight Approve','Monitor']);
+var rider=N('Rider Platform','supply',0,460,22,'resource','Rider Platform | Platform Registration','地面运力。平台级注册(闪送/达达/自建)。SP广播-平台竞标-胜出者内部派单。',['SF Express','Dada','In-house']);
+var merchant=N('Merchant','external',-380,-220,16,'external','Merchant','商家/发货方。发起配送请求。',[]);
+var customer=N('Customer','external',380,280,16,'external','Customer','收货方/消费者。C段送达目的地。',[]);
+E(vas,sp,'Direct Dispatch',2,true);E(op,sp,'Direct + Approve',2,true);E(rider,sp,'Broadcast Bid',2,true);
+E(merchant,sim,'Orders',1.2);E(customer,rider,'Delivery',1.2);E(vas,op,'Drone Custody',1.2,true);
+
+// ===== DRILL DOWN LOGIC =====
+function setVisibility(){
+  // Default: hide all L3 (sub) nodes
+  nodes.forEach(function(n){
+    if(n.type==='sub') n.visible=false;
+    else n.visible=true;
+  });
+  // If drilled into a module, show its children, hide siblings' details
+  if(expandedNode && expandedNode.children.length>0){
+    // Show children
+    expandedNode.children.forEach(function(ch){ch.visible=true;});
+  }
+  // Apply view filter on top
+  applyViewFilter();
 }
 
-// ========== ARCHITECTURE ==========
-// Services (L1)
-var sim = N('SIM Engine', 'sim', 0, -220, 44, 'service',
-  'SIM Engine | Port 4010',
-  '虚拟世界的因子状态源。管理仿真时钟、因子状态、行为策略、订单生成。不做业务决策，只提供状态查询和WebSocket通知。已完成配置化+阶段模型重写(Phase 0-7)。',
-  ['Clock','Factor State','Behavior','Order Gen','Route','Config']);
+function drillInto(node){
+  if(!node.children || node.children.length===0) return false;
+  drillStack.push(expandedNode);
+  expandedNode=node;
+  // Position children around parent
+  var count=node.children.length;
+  node.children.forEach(function(ch,i){
+    var angle=(Math.PI*2*i/count) - Math.PI/2;
+    var dist=node.r*3.5+20;
+    ch.ox=node.x+Math.cos(angle)*dist;
+    ch.oy=node.y+Math.sin(angle)*dist;
+    ch.x=node.x; ch.y=node.y; // animate from center
+  });
+  // Auto-add edges between parent and children if not exist
+  node.children.forEach(function(ch){
+    var exists=edges.some(function(e){return(e.a===node&&e.b===ch)||(e.a===ch&&e.b===node);});
+    if(!exists) E(node,ch,'',0.8);
+  });
+  setVisibility();
+  // Zoom to node
+  targetCamX=-node.x*targetCamScale;
+  targetCamY=-node.y*targetCamScale;
+  targetCamScale=Math.min(1.8, W<768?1.2:1.5);
+  updateBreadcrumb();
+  return true;
+}
 
-var sp = N('SP Platform', 'sp', 0, 30, 54, 'service',
-  'SP Platform | Port 4000 | Decision Hub',
-  '系统的唯一决策中枢。六层编排(L1-L6)、渐进式锁定(软锁-硬锁-原子锁)、订单状态机、ETA管理。协调三类供给资源完成A-B-C三段配送。God Object已拆分(3039->423行,11模块)。',
-  ['L1-L6','Order State Machine','Progressive Lock','ETA','Supply Registry','AI 26 Tools']);
+function drillOut(){
+  if(drillStack.length===0 && !expandedNode) return;
+  expandedNode=drillStack.pop()||null;
+  setVisibility();
+  if(expandedNode){
+    targetCamX=-expandedNode.x*targetCamScale;
+    targetCamY=-expandedNode.y*targetCamScale;
+  } else {
+    targetCamX=0;targetCamY=0;
+    targetCamScale=W<768?0.55:0.8;
+  }
+  updateBreadcrumb();
+}
 
-var web = N('Web Console', 'web', 0, 280, 40, 'service',
-  'Web Console | Port 3000 | Next.js',
-  '控制塔视角前端。实时地图(DJI/Uber/DoorDash三模式)、仿真控制台(三态)、因子监控7卡片、订单详情七段进度、AI浮动面板。双层Polyline路线动画 rAF 60fps。',
-  ['Map View','Sim Lab','Dashboard','Orders','Factor Monitor','AI Panel']);
+function updateBreadcrumb(){
+  var el=document.getElementById('breadcrumb');
+  while(el.firstChild) el.removeChild(el.firstChild);
+  // Root
+  var root=document.createElement('span');
+  root.className='bc-item'+(expandedNode?'':' active');
+  root.textContent='COSMO';
+  root.onclick=function(){expandedNode=null;drillStack=[];setVisibility();targetCamX=0;targetCamY=0;targetCamScale=W<768?0.55:0.8;updateBreadcrumb();};
+  el.appendChild(root);
+  // Stack + current
+  var path=drillStack.filter(function(x){return x;}).concat(expandedNode?[expandedNode]:[]);
+  path.forEach(function(n,i){
+    var sep=document.createElement('span');sep.className='bc-sep';sep.textContent=' > ';el.appendChild(sep);
+    var item=document.createElement('span');
+    item.className='bc-item'+(i===path.length-1?' active':'');
+    item.textContent=n.label;
+    item.onclick=function(){
+      // Navigate to this level
+      var idx=drillStack.indexOf(n);
+      if(idx>=0){drillStack=drillStack.slice(0,idx);expandedNode=n;}
+      setVisibility();targetCamX=-n.x*targetCamScale;targetCamY=-n.y*targetCamScale;updateBreadcrumb();
+    };
+    el.appendChild(item);
+  });
+}
 
-// SIM modules (L2)
-var simClock = N('Clock', 'sim', -220, -360, 16, 'module', 'Clock Engine | SIM', '仿真时钟管理，倍速控制(1x/2x/5x/10x)。驱动所有因子时间轴推进。已升级7组独立计时序列。');
-var simFactor = N('Factor State', 'sim', -80, -380, 16, 'module', 'Factor State | SIM', '管理无人机/骑手/VAS站点实时状态。API查询+WebSocket通知。GPS/电池/任务实时更新。');
-var simBehavior = N('Behavior', 'sim', 60, -380, 14, 'module', 'Behavior Strategy | SIM', '模拟无订单时因子自发行为。随机事件(故障/天气/拒单)测试异常处理能力。');
-var simOrder = N('Order Gen', 'sim', 200, -360, 14, 'module', 'Order Generator | SIM', '模拟外部订单，已验证2000单批量仿真。支持目标总量模式。');
-var simRoute = N('Route API', 'sim', -180, -290, 12, 'module', 'Route Distance | SIM', '高德API真实路线距离+ETA计算。带缓存。');
-var simConfig = N('Config', 'sim', 180, -290, 12, 'module', 'Config Registry | SIM', '5组配置：停留时间17项/速度/电池(5.3%/km)/天气/阶段序列。');
-var simStage = N('Stage Model', 'sim', -40, -310, 12, 'module', 'Stage Model | SIM', '百分比模型升级为7组独立计时序列。精确阶段推进和ETA。');
-var simEvent = N('Events', 'sim', 120, -310, 11, 'module', 'Random Events | SIM', '故障注入、天气变化、拒单模拟。');
-
-// SP modules (L2)
-var spOrder = N('Order Engine', 'sp', -300, -60, 20, 'module', 'Order Engine | SP', '订单全生命周期状态机。Hot/Cold双层持久化，业务订单永不丢失。');
-var spSKU = N('SKU Orch', 'sp', -300, 70, 16, 'module', 'SKU Orchestration | SP', '根据SKU配置组合A-B-C三段资源包。时间源一致性审计(240处扫描)。');
-var spLock = N('Prog Lock', 'sp', -220, 140, 14, 'module', 'Progressive Lock | SP', '三级锁定：软锁-硬锁-原子锁。资源唯一ID审计(三阶段锁)。');
-var spETA = N('ETA Track', 'sp', 300, -60, 18, 'module', 'ETA Tracking | SP', 'ETA计算滚动更新。偏差预警，驱动C段骑手R4预派发。');
-var spSupply = N('Supply Reg', 'sp', 300, 50, 18, 'module', 'Supply Registry | SP', '三类资源注册：VAS(直接)/OP(直接)/骑手平台(平台级)。');
-var spBid = N('Rider Bid', 'sp', 300, 140, 14, 'module', 'Rider Bidding | SP', '向骑手平台广播需求，收集承诺，择优选择。');
-var spAI = N('AI 26 Tools', 'sp', -120, 140, 14, 'module', 'LLM Assistant | SP', '26个AI工具。自然语言查询。CQRS读优化(4表+2视图)。');
-var spExc = N('Exception', 'sp', 60, 140, 14, 'module', 'Exception | SP', '异常分级：重试/地面兜底/取消赔付。电池三层动态阈值。');
-var spSettle = N('Settlement', 'sp', 160, 140, 12, 'module', 'Settlement | SP', '订单完成后费用计算和多方分账。');
-var spDispatch = N('Dispatch', 'sp', -40, 155, 12, 'module', 'Dispatch Lock | SP', '资源并发控制，防止同一资源被多订单锁定。');
-var spMonitor = N('Auto Monitor', 'sp', 220, -20, 13, 'module', 'Automation Monitor | SP', '自动化监控，因子状态巡检和告警。');
-
-// Web modules (L2)
-var webMap = N('Map View', 'web', -220, 350, 16, 'module', 'Map View | Web', 'DJI/Uber/DoorDash三模式。双层Polyline rAF 60fps。实时GPS轨迹。');
-var webSim = N('Sim Lab', 'web', -80, 370, 14, 'module', 'Sim Lab | Web', '仿真实验室。ConsoleShell三态。配置三步引导，因子监控7卡片。');
-var webDash = N('Dashboard', 'web', 60, 370, 14, 'module', 'Dashboard | Web', '数据看板。订单统计、实时因子、活动日志。深色全适配。');
-var webOrder = N('Orders', 'web', 190, 350, 14, 'module', 'Orders | Web', '七段进度(A1/A2/VAS-O/B/VAS-D/C1/C2)。段落映射统一。');
-var webAI = N('AI Panel', 'web', -150, 320, 12, 'module', 'AI Panel | Web', '浮动入口，拖拽面板，26工具可视化调用。');
-var webFactor = N('Factor Mon', 'web', 140, 320, 12, 'module', 'Factor Monitor | Web', '7类因子实时状态面板。电量/位置/台位占用。');
-
-// Supply
-var vas = N('VAS Station', 'supply', -380, 30, 24, 'resource', 'VAS Station | Direct Registration', '起降场。直接注册SP(站点/台位/人员)。资源包=起降台+能源+人员(原子组合)。飞行=托管权转移(起点VAS->终点VAS)。', ['Time Slot','Resource Bundle','Cargo Handle','Landing Pad']);
-var op = N('OP Operator', 'supply', 380, 30, 24, 'resource', 'OP Operator | Direct Registration', '无人机资产所有者。直接注册SP(运营商/机型/个体机)。物权OP，托管VAS，选机SP，放飞审批OP。', ['Drone Fleet','Flight Approve','Status Monitor']);
-var rider = N('Rider Platform', 'supply', 0, 460, 22, 'resource', 'Rider Platform | Platform Registration', '地面运力。平台级注册(闪送/达达/自建)。SP广播-平台竞标-胜出者内部派单。SP不选个体骑手。', ['SF Express','Dada','In-house']);
-
-// External
-var merchant = N('Merchant', 'external', -380, -220, 16, 'external', 'Merchant | External', '商家/发货方。通过外部订单平台发起配送请求。');
-var customer = N('Customer', 'external', 380, 280, 16, 'external', 'Customer | External', '收货方/消费者。C段骑手送达的最终目的地。');
-
-// ========== EDGES ==========
-// Service connections
-E(sim, sp, 'WebSocket + REST', 3, true);
-E(sp, web, 'Next.js + WS', 3, true);
-
-// SIM -> children
-E(simClock, sim, '', 1); E(simFactor, sim, '', 1); E(simBehavior, sim, '', 1);
-E(simOrder, sim, '', 1); E(simRoute, sim, '', 1); E(simConfig, sim, '', 1);
-E(simStage, sim, '', 1); E(simEvent, sim, '', 1);
-
-// SP -> children
-E(spOrder, sp, '', 1); E(spSKU, sp, '', 1); E(spLock, sp, '', 1);
-E(spETA, sp, '', 1); E(spSupply, sp, '', 1); E(spBid, sp, '', 1);
-E(spAI, sp, '', 1); E(spExc, sp, '', 1); E(spSettle, sp, '', 1);
-E(spDispatch, sp, '', 1); E(spMonitor, sp, '', 1);
-
-// Web -> children
-E(webMap, web, '', 1); E(webSim, web, '', 1); E(webDash, web, '', 1);
-E(webOrder, web, '', 1); E(webAI, web, '', 1); E(webFactor, web, '', 1);
-
-// Supply -> SP
-E(vas, sp, 'Direct Dispatch', 2, true);
-E(op, sp, 'Direct + Approve', 2, true);
-E(rider, sp, 'Broadcast Bid', 2, true);
-
-// Cross
-E(merchant, sim, 'Orders', 1.2);
-E(customer, rider, 'Delivery', 1.2);
-E(vas, op, 'Drone Custody', 1.2, true);
+var currentView='full';
+function applyViewFilter(){
+  nodes.forEach(function(n){
+    if(n.type==='sub' && (!expandedNode || n.parent!==expandedNode)){n.visible=false;return;}
+    switch(currentView){
+      case'full':break;
+      case'sim':if(n.group!=='sim'&&n.type!=='service'&&n.type!=='sub')n.visible=false;break;
+      case'sp':if(n.group!=='sp'&&n.group!=='supply'&&n.type!=='service'&&n.type!=='sub')n.visible=false;break;
+      case'web':if(n.group!=='web'&&n.type!=='service'&&n.type!=='sub')n.visible=false;break;
+      case'flow':if(n.type!=='service'&&n.type!=='resource'&&n.type!=='external')n.visible=false;break;
+    }
+  });
+}
 
 // Physics
-function simulate() {
-  for (var i = 0; i < nodes.length; i++) {
-    var ni = nodes[i];
-    if (!ni.visible || ni.dragging) continue;
-    var fx = 0, fy = 0;
-    fx -= ni.x * 0.0008;
-    fy -= ni.y * 0.0008;
-    for (var j = 0; j < nodes.length; j++) {
-      if (i === j || !nodes[j].visible) continue;
-      var nj = nodes[j];
-      var dx = ni.x - nj.x, dy = ni.y - nj.y;
-      var dist = Math.sqrt(dx*dx + dy*dy) + 1;
-      var force = 600 * (ni.r + nj.r) / (dist * dist);
-      fx += (dx/dist)*force; fy += (dy/dist)*force;
+function simulate(){
+  for(var i=0;i<nodes.length;i++){
+    var ni=nodes[i];if(!ni.visible||ni.dragging)continue;
+    var fx=0,fy=0;
+    fx-=ni.x*0.0008;fy-=ni.y*0.0008;
+    for(var j=0;j<nodes.length;j++){
+      if(i===j||!nodes[j].visible)continue;
+      var nj=nodes[j],dx=ni.x-nj.x,dy=ni.y-nj.y,dist=Math.sqrt(dx*dx+dy*dy)+1;
+      var force=500*(ni.r+nj.r)/(dist*dist);
+      fx+=(dx/dist)*force;fy+=(dy/dist)*force;
     }
-    fx += (ni.ox - ni.x) * 0.025;
-    fy += (ni.oy - ni.y) * 0.025;
-    ni.vx = (ni.vx + fx) * 0.82;
-    ni.vy = (ni.vy + fy) * 0.82;
-    ni.x += ni.vx; ni.y += ni.vy;
+    fx+=(ni.ox-ni.x)*0.03;fy+=(ni.oy-ni.y)*0.03;
+    ni.vx=(ni.vx+fx)*0.8;ni.vy=(ni.vy+fy)*0.8;ni.x+=ni.vx;ni.y+=ni.vy;
   }
 }
 
-var time = 0, hoveredNode = null;
+var time=0,hoveredNode=null;
+function hexRgba(hex,a){return'rgba('+parseInt(hex.slice(1,3),16)+','+parseInt(hex.slice(3,5),16)+','+parseInt(hex.slice(5,7),16)+','+a+')';}
 
-function hexToRgba(hex, a) {
-  return 'rgba(' + parseInt(hex.slice(1,3),16) + ',' + parseInt(hex.slice(3,5),16) + ',' + parseInt(hex.slice(5,7),16) + ',' + a + ')';
-}
-
-function draw() {
-  time += 0.016;
-  simulate();
-  camX += (targetCamX - camX) * 0.1;
-  camY += (targetCamY - camY) * 0.1;
-  camScale += (targetCamScale - camScale) * 0.1;
-
-  ctx.clearRect(0, 0, W, H);
-
-  // Subtle texture/particles
+function draw(){
+  time+=0.016;simulate();
+  camX+=(targetCamX-camX)*0.1;camY+=(targetCamY-camY)*0.1;camScale+=(targetCamScale-camScale)*0.1;
+  ctx.clearRect(0,0,W,H);
+  // Particles
   ctx.save();
-  for (var i = 0; i < 40; i++) {
-    var px = ((i * 137.5 + time * 5) % (W + 100)) - 50;
-    var py = ((i * 97.3 + time * 2) % (H + 100)) - 50;
-    ctx.fillStyle = 'rgba(196,185,154,' + (0.02 + Math.sin(time + i) * 0.015) + ')';
-    ctx.fillRect(px, py, 1.5, 1.5);
+  for(var i=0;i<40;i++){
+    var px=((i*137.5+time*5)%(W+100))-50,py=((i*97.3+time*2)%(H+100))-50;
+    ctx.fillStyle='rgba(196,185,154,'+(0.02+Math.sin(time+i)*0.015)+')';ctx.fillRect(px,py,1.5,1.5);
   }
   ctx.restore();
-
-  ctx.save();
-  ctx.translate(W/2 + camX, H/2 + camY);
-  ctx.scale(camScale, camScale);
+  ctx.save();ctx.translate(W/2+camX,H/2+camY);ctx.scale(camScale,camScale);
 
   // Edges
-  edges.forEach(function(e) {
-    if (!e.a.visible || !e.b.visible) return;
-    var isHL = hoveredNode && (e.a === hoveredNode || e.b === hoveredNode);
-    var alpha = hoveredNode ? (isHL ? 0.7 : 0.06) : 0.2;
-    ctx.beginPath();
-    ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y);
-    ctx.strokeStyle = isHL ? C.vermillion : hexToRgba(C.bamboo, alpha);
-    ctx.lineWidth = isHL ? e.width + 1 : e.width;
-    ctx.stroke();
-    // Flow dots
-    if (e.animated || isHL) {
-      var t1 = (time * 0.4) % 1;
-      var ddx = e.b.x - e.a.x, ddy = e.b.y - e.a.y;
-      ctx.beginPath(); ctx.arc(e.a.x + ddx*t1, e.a.y + ddy*t1, 3, 0, Math.PI*2);
-      ctx.fillStyle = C.vermillion; ctx.fill();
-      var t2 = (time * 0.4 + 0.5) % 1;
-      ctx.beginPath(); ctx.arc(e.a.x + ddx*t2, e.a.y + ddy*t2, 2, 0, Math.PI*2);
-      ctx.fillStyle = hexToRgba(C.vermillion, 0.4); ctx.fill();
+  edges.forEach(function(e){
+    if(!e.a.visible||!e.b.visible)return;
+    var isHL=hoveredNode&&(e.a===hoveredNode||e.b===hoveredNode);
+    var alpha=hoveredNode?(isHL?0.7:0.06):0.2;
+    ctx.beginPath();ctx.moveTo(e.a.x,e.a.y);ctx.lineTo(e.b.x,e.b.y);
+    ctx.strokeStyle=isHL?C.vermillion:hexRgba(C.bamboo,alpha);
+    ctx.lineWidth=isHL?e.width+1:e.width;ctx.stroke();
+    if(e.animated||isHL){
+      var t1=(time*0.4)%1,ddx=e.b.x-e.a.x,ddy=e.b.y-e.a.y;
+      ctx.beginPath();ctx.arc(e.a.x+ddx*t1,e.a.y+ddy*t1,3,0,Math.PI*2);ctx.fillStyle=C.vermillion;ctx.fill();
+      var t2=(time*0.4+0.5)%1;ctx.beginPath();ctx.arc(e.a.x+ddx*t2,e.a.y+ddy*t2,2,0,Math.PI*2);ctx.fillStyle=hexRgba(C.vermillion,0.4);ctx.fill();
     }
-    // Label
-    if (e.label && (isHL || !hoveredNode)) {
-      ctx.font = '9px "Noto Sans SC", sans-serif';
-      ctx.fillStyle = isHL ? C.vermillion : hexToRgba(C.bamboo, 0.5);
-      ctx.textAlign = 'center';
-      ctx.fillText(e.label, (e.a.x+e.b.x)/2, (e.a.y+e.b.y)/2 - 6);
-    }
+    if(e.label&&(isHL||!hoveredNode)){ctx.font='9px "Noto Sans SC",sans-serif';ctx.fillStyle=isHL?C.vermillion:hexRgba(C.bamboo,0.5);ctx.textAlign='center';ctx.fillText(e.label,(e.a.x+e.b.x)/2,(e.a.y+e.b.y)/2-6);}
   });
 
   // Nodes
-  nodes.forEach(function(n) {
-    if (!n.visible) return;
-    var isHov = n === hoveredNode;
-    var isConn = hoveredNode && edges.some(function(e){ return (e.a===hoveredNode&&e.b===n)||(e.b===hoveredNode&&e.a===n); });
-    var dimmed = hoveredNode && !isHov && !isConn;
-    var alpha = dimmed ? 0.12 : 1;
-    var col = GCOLORS[n.group] || C.stone;
+  nodes.forEach(function(n){
+    if(!n.visible)return;
+    var isHov=n===hoveredNode;
+    var isConn=hoveredNode&&edges.some(function(e){return(e.a===hoveredNode&&e.b===n)||(e.b===hoveredNode&&e.a===n);});
+    var dimmed=hoveredNode&&!isHov&&!isConn;var alpha=dimmed?0.12:1;
+    var col=GCOL[n.group]||C.stone;
+    var hasChildren=n.children&&n.children.length>0;
 
-    // Glow for service/hovered
-    if ((isHov || n.type === 'service') && !dimmed) {
-      var grd = ctx.createRadialGradient(n.x, n.y, n.r*0.3, n.x, n.y, n.r*2.8);
-      grd.addColorStop(0, hexToRgba(col, 0.2)); grd.addColorStop(1, hexToRgba(col, 0));
-      ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r*2.8, 0, Math.PI*2); ctx.fill();
+    // Glow
+    if((isHov||n.type==='service')&&!dimmed){
+      var grd=ctx.createRadialGradient(n.x,n.y,n.r*0.3,n.x,n.y,n.r*2.8);
+      grd.addColorStop(0,hexRgba(col,0.2));grd.addColorStop(1,hexRgba(col,0));
+      ctx.fillStyle=grd;ctx.beginPath();ctx.arc(n.x,n.y,n.r*2.8,0,Math.PI*2);ctx.fill();
     }
-
     // Circle
-    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
-    ctx.fillStyle = hexToRgba(col, (n.type==='service' ? 0.12 : 0.08) * alpha);
-    ctx.fill();
-    ctx.strokeStyle = hexToRgba(col, (isHov ? 1 : 0.5) * alpha);
-    ctx.lineWidth = n.type === 'service' ? 2 : (isHov ? 2 : 1);
-    ctx.stroke();
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    ctx.fillStyle=hexRgba(col,(n.type==='service'?0.12:n.type==='sub'?0.15:0.08)*alpha);ctx.fill();
+    ctx.strokeStyle=hexRgba(col,(isHov?1:0.5)*alpha);
+    ctx.lineWidth=n.type==='service'?2:(isHov?2:1);ctx.stroke();
 
-    // Service: double ring + pulse
-    if (n.type === 'service' && !dimmed) {
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 4, 0, Math.PI*2);
-      ctx.strokeStyle = hexToRgba(col, 0.2); ctx.lineWidth = 1; ctx.stroke();
-      var pulse = (Math.sin(time*1.8 + n.id) + 1) * 0.5;
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 8 + pulse*8, 0, Math.PI*2);
-      ctx.strokeStyle = hexToRgba(col, 0.08*(1-pulse)); ctx.lineWidth = 1; ctx.stroke();
+    // Expandable indicator (dashed outer ring)
+    if(hasChildren&&!dimmed&&n.type!=='service'){
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r+5,0,Math.PI*2);
+      ctx.setLineDash([3,3]);ctx.strokeStyle=hexRgba(col,0.3);ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
     }
 
+    // Service double ring + pulse
+    if(n.type==='service'&&!dimmed){
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r+4,0,Math.PI*2);ctx.strokeStyle=hexRgba(col,0.2);ctx.lineWidth=1;ctx.stroke();
+      var pulse=(Math.sin(time*1.8+n.id)+1)*0.5;
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r+8+pulse*8,0,Math.PI*2);ctx.strokeStyle=hexRgba(col,0.08*(1-pulse));ctx.lineWidth=1;ctx.stroke();
+    }
     // Center dot
-    ctx.beginPath(); ctx.arc(n.x, n.y, n.type==='service' ? 4 : 2.5, 0, Math.PI*2);
-    ctx.fillStyle = hexToRgba(col, 0.8*alpha); ctx.fill();
-
+    ctx.beginPath();ctx.arc(n.x,n.y,n.type==='service'?4:n.type==='sub'?2:2.5,0,Math.PI*2);
+    ctx.fillStyle=hexRgba(col,0.8*alpha);ctx.fill();
     // Label
-    var fontSize = n.type==='service' ? 13 : (n.type==='module' ? 10 : 11);
-    var fontWeight = n.type==='service' ? '700' : '400';
-    ctx.font = fontWeight + ' ' + fontSize + 'px "Noto Sans SC", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = hexToRgba(C.ricePaper, (isHov ? 1 : 0.75) * alpha);
-    ctx.fillText(n.label, n.x, n.y + n.r + 14);
-
-    // Port for services
-    if (n.type === 'service' && !dimmed) {
-      ctx.font = '500 9px "Cormorant Garamond", serif';
-      ctx.fillStyle = hexToRgba(col, 0.6);
-      var pm = n.title.match(/Port \d+/);
-      if (pm) ctx.fillText(pm[0], n.x, n.y + n.r + 26);
+    var fs=n.type==='service'?13:n.type==='sub'?9:10;
+    ctx.font=(n.type==='service'?'700 ':'400 ')+fs+'px "Noto Sans SC",sans-serif';
+    ctx.textAlign='center';ctx.fillStyle=hexRgba(C.ricePaper,(isHov?1:0.75)*alpha);
+    ctx.fillText(n.label,n.x,n.y+n.r+12+(n.type==='sub'?-2:0));
+    // Port
+    if(n.type==='service'&&!dimmed){
+      ctx.font='500 9px "Cormorant Garamond",serif';ctx.fillStyle=hexRgba(col,0.6);
+      var pm=n.title.match(/Port \d+/);if(pm)ctx.fillText(pm[0],n.x,n.y+n.r+24);
     }
   });
-
   ctx.restore();
   requestAnimationFrame(draw);
 }
 
 // Interaction
-var dragNode = null, isDragging = false, lastTouch = null, pinchDist = null;
-
-function s2w(sx, sy) { return { x:(sx-W/2-camX)/camScale, y:(sy-H/2-camY)/camScale }; }
-
-function findNode(sx, sy) {
-  var p = s2w(sx, sy), best = null, bestD = 1e9;
-  nodes.forEach(function(n) {
-    if (!n.visible) return;
-    var d = Math.sqrt((n.x-p.x)*(n.x-p.x)+(n.y-p.y)*(n.y-p.y));
-    if (d < n.r+12 && d < bestD) { best=n; bestD=d; }
-  });
+var dragNode=null,isDragging=false,lastTouch=null,pinchDist=null;
+function s2w(sx,sy){return{x:(sx-W/2-camX)/camScale,y:(sy-H/2-camY)/camScale};}
+function findNode(sx,sy){
+  var p=s2w(sx,sy),best=null,bestD=1e9;
+  nodes.forEach(function(n){if(!n.visible)return;var d=Math.sqrt((n.x-p.x)*(n.x-p.x)+(n.y-p.y)*(n.y-p.y));if(d<n.r+12&&d<bestD){best=n;bestD=d;}});
   return best;
 }
-
-canvas.addEventListener('pointerdown', function(e) {
-  var n = findNode(e.clientX, e.clientY);
-  if (n) { dragNode=n; n.dragging=true; isDragging=false; }
-  else { lastTouch={x:e.clientX,y:e.clientY}; }
+canvas.addEventListener('pointerdown',function(e){
+  var n=findNode(e.clientX,e.clientY);
+  if(n){dragNode=n;n.dragging=true;isDragging=false;}
+  else{lastTouch={x:e.clientX,y:e.clientY};}
   document.getElementById('hint').style.opacity='0';
 });
-
-canvas.addEventListener('pointermove', function(e) {
-  if (dragNode) {
-    var p=s2w(e.clientX,e.clientY); dragNode.x=p.x; dragNode.y=p.y; isDragging=true;
-  } else if (lastTouch) {
-    targetCamX+=e.clientX-lastTouch.x; targetCamY+=e.clientY-lastTouch.y;
-    lastTouch={x:e.clientX,y:e.clientY};
-  } else {
-    hoveredNode=findNode(e.clientX,e.clientY);
-    canvas.style.cursor=hoveredNode?'pointer':'default';
-  }
+canvas.addEventListener('pointermove',function(e){
+  if(dragNode){var p=s2w(e.clientX,e.clientY);dragNode.x=p.x;dragNode.y=p.y;isDragging=true;}
+  else if(lastTouch){targetCamX+=e.clientX-lastTouch.x;targetCamY+=e.clientY-lastTouch.y;lastTouch={x:e.clientX,y:e.clientY};}
+  else{hoveredNode=findNode(e.clientX,e.clientY);canvas.style.cursor=hoveredNode?'pointer':'default';}
 });
-
-canvas.addEventListener('pointerup', function() {
-  if (dragNode && !isDragging) showPanel(dragNode);
-  if (dragNode) dragNode.dragging=false;
-  dragNode=null; lastTouch=null;
+canvas.addEventListener('pointerup',function(e){
+  if(dragNode&&!isDragging){
+    // Try drill down first, if no children show panel
+    if(!drillInto(dragNode)){
+      showPanel(dragNode);
+    }
+  } else if(!dragNode&&!isDragging&&lastTouch){
+    // Clicked empty space - drill out
+    var n=findNode(e.clientX,e.clientY);
+    if(!n && expandedNode) drillOut();
+  }
+  if(dragNode)dragNode.dragging=false;
+  dragNode=null;lastTouch=null;isDragging=false;
 });
+canvas.addEventListener('wheel',function(e){e.preventDefault();targetCamScale=Math.max(0.3,Math.min(3,targetCamScale*(e.deltaY>0?0.9:1.1)));},{passive:false});
+canvas.addEventListener('touchstart',function(e){if(e.touches.length===2){var dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;pinchDist=Math.sqrt(dx*dx+dy*dy);}},{passive:true});
+canvas.addEventListener('touchmove',function(e){if(e.touches.length===2&&pinchDist){var dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY,d=Math.sqrt(dx*dx+dy*dy);targetCamScale=Math.max(0.3,Math.min(3,targetCamScale*d/pinchDist));pinchDist=d;}},{passive:true});
+canvas.addEventListener('touchend',function(){pinchDist=null;});
 
-canvas.addEventListener('wheel', function(e) {
-  e.preventDefault();
-  targetCamScale=Math.max(0.3,Math.min(3,targetCamScale*(e.deltaY>0?0.9:1.1)));
-}, {passive:false});
-
-canvas.addEventListener('touchstart', function(e) {
-  if (e.touches.length===2) {
-    var dx=e.touches[0].clientX-e.touches[1].clientX;
-    var dy=e.touches[0].clientY-e.touches[1].clientY;
-    pinchDist=Math.sqrt(dx*dx+dy*dy);
-  }
-}, {passive:true});
-
-canvas.addEventListener('touchmove', function(e) {
-  if (e.touches.length===2 && pinchDist) {
-    var dx=e.touches[0].clientX-e.touches[1].clientX;
-    var dy=e.touches[0].clientY-e.touches[1].clientY;
-    var d=Math.sqrt(dx*dx+dy*dy);
-    targetCamScale=Math.max(0.3,Math.min(3,targetCamScale*d/pinchDist));
-    pinchDist=d;
-  }
-}, {passive:true});
-
-canvas.addEventListener('touchend', function(){pinchDist=null;});
-
-function showPanel(n) {
+function showPanel(n){
   document.getElementById('panel-type').textContent=n.type.toUpperCase()+' | '+n.group.toUpperCase();
   document.getElementById('panel-title').textContent=n.title;
   document.getElementById('panel-body').textContent=n.desc;
-  var el=document.getElementById('panel-tags');
-  while(el.firstChild) el.removeChild(el.firstChild);
+  var el=document.getElementById('panel-tags');while(el.firstChild)el.removeChild(el.firstChild);
   n.tags.forEach(function(t){var s=document.createElement('span');s.className='tag';s.textContent=t;el.appendChild(s);});
   document.getElementById('panel').classList.add('show');
 }
-
 function closePanel(){document.getElementById('panel').classList.remove('show');}
 
 document.querySelectorAll('.view-btn').forEach(function(btn){
   btn.addEventListener('click',function(){
     document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active');
-    var v=btn.dataset.view;
-    nodes.forEach(function(n){
-      switch(v){
-        case'full':n.visible=true;break;
-        case'sim':n.visible=n.group==='sim'||n.type==='service';break;
-        case'sp':n.visible=n.group==='sp'||n.group==='supply'||n.type==='service';break;
-        case'web':n.visible=n.group==='web'||n.type==='service';break;
-        case'flow':n.visible=n.type==='service'||n.type==='resource'||n.type==='external';break;
-      }
-    });
+    btn.classList.add('active');currentView=btn.dataset.view;
+    expandedNode=null;drillStack=[];setVisibility();updateBreadcrumb();
     targetCamX=0;targetCamY=0;
-    if(v==='sim')targetCamY=80;
-    if(v==='web')targetCamY=-80;
-    targetCamScale=v==='full'?0.8:1;
+    if(currentView==='sim')targetCamY=80;if(currentView==='web')targetCamY=-80;
+    targetCamScale=currentView==='full'?0.8:1;
   });
 });
 
-if(W<768){targetCamScale=0.55;camScale=0.55;}
-else{targetCamScale=0.8;camScale=0.8;}
-
-draw();
+if(W<768){targetCamScale=0.55;camScale=0.55;}else{targetCamScale=0.8;camScale=0.8;}
+setVisibility();updateBreadcrumb();draw();
 </script>
 </body>
 </html>
