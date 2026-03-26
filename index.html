@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>COSMO - Low Altitude Fulfillment Platform</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0e17;
+  --bg2: #111827;
+  --accent: #00f0ff;
+  --accent2: #7c3aed;
+  --accent3: #10b981;
+  --accent4: #f59e0b;
+  --accent5: #ef4444;
+  --text: #e2e8f0;
+  --text-dim: #64748b;
+  --glow: 0 0 20px rgba(0, 240, 255, 0.3);
+  --card-bg: rgba(17, 24, 39, 0.85);
+  --border: rgba(0, 240, 255, 0.15);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Animated background grid */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: 0;
+}
+
+.bg-glow {
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  filter: blur(150px);
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-glow-1 { background: var(--accent); top: -200px; left: -200px; }
+.bg-glow-2 { background: var(--accent2); bottom: -200px; right: -200px; }
+
+/* Header */
+.header {
+  position: relative;
+  z-index: 10;
+  padding: 40px 24px 20px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  margin-bottom: 8px;
+}
+
+.header .subtitle {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.header .tagline {
+  margin-top: 16px;
+  font-size: 1.1rem;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 20px 24px;
+  position: relative;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+/* Navigation tabs */
+.nav-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px 20px;
+  position: relative;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.nav-tab {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-tab:hover, .nav-tab.active {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* Content area */
+.content {
+  position: relative;
+  z-index: 10;
+  padding: 0 24px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* View: Overview - 3 Services */
+.view { display: none; }
+.view.active { display: block; }
+
+/* Architecture nodes */
+.arch-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.service-card {
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.6s ease-out both;
+}
+
+.service-card:nth-child(2) { animation-delay: 0.15s; }
+.service-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.service-card:hover, .service-card:active {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  transform: translateY(-4px);
+}
+
+.service-header {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.service-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.service-info h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.service-info .port {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  margin-top: 2px;
+}
+
+.service-info .desc {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.service-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-card.expanded .service-details {
+  max-height: 2000px;
+}
+
+.service-modules {
+  padding: 0 20px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.module-chip {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  font-size: 0.75rem;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.module-chip:hover {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+/* Connection lines */
+.conn-line {
+  width: 2px;
+  height: 30px;
+  background: linear-gradient(to bottom, var(--accent), transparent);
+  position: relative;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.conn-line::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+.conn-label {
+  font-size: 0.7rem;
+  color: var(--accent);
+  text-align: center;
+  padding: 4px 0;
+  letter-spacing: 1px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Delivery pipeline view */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.segment {
+  width: 100%;
+  max-width: 500px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  animation: slideUp 0.5s ease-out both;
+}
+
+.segment:nth-child(2) { animation-delay: 0.08s; }
+.segment:nth-child(3) { animation-delay: 0.16s; }
+.segment:nth-child(4) { animation-delay: 0.24s; }
+.segment:nth-child(5) { animation-delay: 0.32s; }
+.segment:nth-child(6) { animation-delay: 0.4s; }
+.segment:nth-child(7) { animation-delay: 0.48s; }
+
+.segment:hover {
+  transform: translateX(8px);
+  border-color: var(--accent);
+}
+
+.seg-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.seg-info h4 { font-size: 0.95rem; }
+.seg-info p { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+
+.seg-arrow {
+  width: 24px;
+  text-align: center;
+  color: var(--accent);
+  font-size: 1.2rem;
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+/* Six layers view */
+.layers-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.layer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  cursor: pointer;
+  transition: all 0.3s;
+  animation: slideUp 0.5s ease-out both;
+}
+
+.layer-row:nth-child(2) { animation-delay: 0.1s; }
+.layer-row:nth-child(3) { animation-delay: 0.2s; }
+.layer-row:nth-child(4) { animation-delay: 0.3s; }
+.layer-row:nth-child(5) { animation-delay: 0.4s; }
+.layer-row:nth-child(6) { animation-delay: 0.5s; }
+
+.layer-row:hover {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  transform: scale(1.02);
+}
+
+.layer-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.layer-info h4 { font-size: 0.95rem; }
+.layer-info p { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+
+.layer-expanded {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  width: 100%;
+}
+
+.layer-row.expanded .layer-expanded {
+  max-height: 500px;
+}
+
+.layer-detail {
+  padding: 12px 0 0 52px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+
+/* Supply model view */
+.supply-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.supply-card {
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.4s;
+  animation: slideUp 0.6s ease-out both;
+}
+
+.supply-card:nth-child(2) { animation-delay: 0.15s; }
+.supply-card:nth-child(3) { animation-delay: 0.3s; }
+
+.supply-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  transform: translateY(-4px);
+}
+
+.supply-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.supply-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.supply-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.supply-body {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+.supply-body strong {
+  color: var(--text);
+}
+
+/* Tech stack view */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tech-item {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  text-align: center;
+  transition: all 0.3s;
+  animation: slideUp 0.5s ease-out both;
+}
+
+.tech-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: var(--glow);
+}
+
+.tech-item .icon { font-size: 2rem; margin-bottom: 8px; }
+.tech-item .name { font-size: 0.85rem; font-weight: 600; }
+.tech-item .role { font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; }
+
+/* Module detail modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+  color: var(--accent);
+}
+
+.modal-card .modal-sub {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.modal-card p {
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.modal-close {
+  margin-top: 16px;
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 40px 24px;
+  position: relative;
+  z-index: 10;
+}
+
+.footer .line1 {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.footer .line2 {
+  font-size: 0.65rem;
+  color: rgba(100,116,139,0.5);
+  margin-top: 6px;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .header h1 { font-size: 3.5rem; }
+  .stats-bar { gap: 60px; }
+  .stat-value { font-size: 2.4rem; }
+  .supply-grid { grid-template-columns: repeat(3, 1fr); }
+  .service-modules { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<!-- Header -->
+<header class="header">
+  <h1>COSMO</h1>
+  <div class="subtitle">Low Altitude Fulfillment Platform</div>
+  <div class="tagline">新一代地空协同配送平台 -- 三段式履约架构</div>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-value" id="stat-modules">0</div>
+    <div class="stat-label">Core Modules</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value" id="stat-tests">0</div>
+    <div class="stat-label">Test Cases</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value" id="stat-layers">6</div>
+    <div class="stat-label">Orchestration</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value" id="stat-segments">7</div>
+    <div class="stat-label">Segments</div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-view="overview">Architecture</button>
+  <button class="nav-tab" data-view="pipeline">Pipeline</button>
+  <button class="nav-tab" data-view="layers">Orchestration</button>
+  <button class="nav-tab" data-view="supply">Supply Model</button>
+  <button class="nav-tab" data-view="tech">Tech Stack</button>
+</nav>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- Overview -->
+  <div class="view active" id="view-overview">
+    <div class="arch-flow">
+      <div class="service-card" onclick="toggleCard(this)">
+        <div class="service-header">
+          <div class="service-icon" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">S</div>
+          <div class="service-info">
+            <h3>SIM Engine</h3>
+            <div class="port">Port 4010 -- Simulation Engine</div>
+            <div class="desc">虚拟世界的因子状态源 / 时钟推进 / 行为策略 / 订单生成</div>
+          </div>
+        </div>
+        <div class="service-details">
+          <div class="service-modules">
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Clock Engine','时钟推进','管理仿真时钟，支持倍速控制。驱动所有因子的时间轴推进，是仿真世界的心跳。')">Clock Engine</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Factor State','因子状态管理','管理所有因子（无人机、骑手、VAS站点）的实时状态。提供状态查询API和WebSocket通知。')">Factor State</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Behavior Strategy','行为策略引擎','模拟无订单时因子的自发行为：无人机巡航、骑手待命、站点空闲等。')">Behavior Strategy</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Order Generator','订单生成器','模拟外部订单平台，按配置生成测试订单。支持批量生成（已验证2000单）。')">Order Generator</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Route Distance','路线距离服务','集成高德API，计算真实路线距离。带缓存层，避免重复调用。')">Route Distance</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Config Registry','配置注册中心','5组配置集中管理：停留时间(17项)、速度参数、电池模型、天气因子等。')">Config Registry</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Stage Model','阶段模型','百分比模型升级为7组独立计时序列。每段配送有精确的阶段推进和ETA计算。')">Stage Model</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Random Events','随机事件系统','故障注入、天气变化、拒单模拟。测试系统的异常处理能力。')">Random Events</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn-line"></div>
+      <div class="conn-label">WebSocket / REST API</div>
+      <div class="conn-line"></div>
+
+      <div class="service-card" onclick="toggleCard(this)">
+        <div class="service-header">
+          <div class="service-icon" style="background:linear-gradient(135deg,#00f0ff,#0ea5e9);">SP</div>
+          <div class="service-info">
+            <h3>SP Platform</h3>
+            <div class="port">Port 4000 -- Service Platform (Decision Hub)</div>
+            <div class="desc">系统决策中枢 / 六层编排 / 渐进式锁定 / 订单状态机 / ETA管理</div>
+          </div>
+        </div>
+        <div class="service-details">
+          <div class="service-modules">
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Order Engine','订单引擎','订单全生命周期状态机管理。从创建、调度、执行到完成的完整链路。')">Order Engine</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('SKU Orchestration','SKU编排器','根据SKU配置组合A-B-C三段资源包。支持多种配送模式的灵活编排。')">SKU Orchestration</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Progressive Lock','渐进式锁定','三级锁定策略：软锁(状态触发)→硬锁(ETA触发)→原子锁(资源包锁定)。')">Progressive Lock</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('ETA Tracking','ETA追踪','实时计算和滚动更新预计到达时间。偏差预警，驱动C段骑手预派发。')">ETA Tracking</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Supply Registry','供给注册中心','三类资源注册管理：VAS站点(直接)、OP无人机(直接)、骑手平台(平台级)。')">Supply Registry</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Dispatch Lock','调度锁','资源并发控制。防止同一无人机/台位/骑手被多个订单同时锁定。')">Dispatch Lock</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Rider Bidding','骑手竞价','向多个骑手平台广播需求，收集服务承诺，择优选择。')">Rider Bidding</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Exception Handler','异常处理','异常分类、地面兜底方案、取消边界判定。保障履约可靠性。')">Exception Handler</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Resource Query','资源查询','实时查询所有注册资源的可用状态。支持多维度筛选和排序。')">Resource Query</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Settlement','结算系统','订单完成后的费用计算和分账。支持多方结算。')">Settlement</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('LLM Assistant','AI助手','26个AI工具集成。自然语言查询订单状态、资源情况、数据分析。')">LLM Assistant</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Data Sync','数据同步','CQRS读优化：4表+2视图+寄生写入+采样器。高效的数据查询层。')">Data Sync</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn-line"></div>
+      <div class="conn-label">Next.js / WebSocket</div>
+      <div class="conn-line"></div>
+
+      <div class="service-card" onclick="toggleCard(this)">
+        <div class="service-header">
+          <div class="service-icon" style="background:linear-gradient(135deg,#10b981,#34d399);">W</div>
+          <div class="service-info">
+            <h3>Web Console</h3>
+            <div class="port">Port 3000 -- Next.js Frontend</div>
+            <div class="desc">控制塔视角 / 实时地图 / 仿真控制台 / 订单管理 / 数据看板</div>
+          </div>
+        </div>
+        <div class="service-details">
+          <div class="service-modules">
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Map View','地图视图','DJI/Uber/DoorDash三种模式。双层Polyline路线动画，rAF 60fps流畅渲染。')">Map View</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Sim Lab','仿真实验室','三态控制台(配置→运行→回顾)。配置态三步引导，运行态实时监控。')">Sim Lab</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Dashboard','数据看板','订单统计、因子监控7卡片、活动日志侧栏。实时数据刷新。')">Dashboard</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Order Detail','订单详情','七段配送进度可视化。每段实时状态、ETA、骑手/无人机信息。')">Order Detail</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('Factor Monitor','因子监控','7类因子实时状态面板。无人机电量、骑手位置、VAS台位占用等。')">Factor Monitor</div>
+            <div class="module-chip" onclick="event.stopPropagation();showModule('AI Panel','AI面板','浮动入口，自然语言交互。拖拽面板，26个工具可视化调用。')">AI Panel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline -->
+  <div class="view" id="view-pipeline">
+    <div class="pipeline">
+      <div class="segment" style="animation-delay:0s">
+        <div class="seg-badge" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;">A1</div>
+        <div class="seg-info">
+          <h4>Pickup</h4>
+          <p>骑手从商家取货</p>
+        </div>
+      </div>
+      <div class="seg-arrow">&#8595;</div>
+      <div class="segment" style="animation-delay:0.08s">
+        <div class="seg-badge" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;">A2</div>
+        <div class="seg-info">
+          <h4>To Station</h4>
+          <p>骑手送货至起点VAS站</p>
+        </div>
+      </div>
+      <div class="seg-arrow">&#8595;</div>
+      <div class="segment" style="animation-delay:0.16s">
+        <div class="seg-badge" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">VAS-O</div>
+        <div class="seg-info">
+          <h4>Origin Station</h4>
+          <p>起点VAS -- 检查/装载/报飞</p>
+        </div>
+      </div>
+      <div class="seg-arrow">&#8595;</div>
+      <div class="segment" style="animation-delay:0.24s">
+        <div class="seg-badge" style="background:linear-gradient(135deg,#00f0ff,#0ea5e9);color:#000;">B</div>
+        <div class="seg-info">
+          <h4>Drone Flight</h4>
+          <p>无人机空中运输 -- VAS航线</p>
+        </div>
+      </div>
+      <div class="seg-arrow">&#8595;</div>
+      <div class="segment" style="animation-delay:0.32s">
+        <div class="seg-badge" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">VAS-D</div>
+        <div class="seg-info">
+          <h4>Destination Station</h4>
+          <p>终点VAS -- 降落/卸货/交接</p>
+        </div>
+      </div>
+      <div class="seg-arrow">&#8595;</div>
+      <div class="segment" style="animation-delay:0.4s">
+        <div class="seg-badge" style="background:linear-gradient(135deg,#10b981,#34d399);color:#000;">C1</div>
+        <div class="seg-info">
+          <h4>To Station</h4>
+          <p>末段骑手赴站 (ETA预派发并行)</p>
+        </div>
+      </div>
+      <div class="seg-arrow">&#8595;</div>
+      <div class="segment" style="animation-delay:0.48s">
+        <div class="seg-badge" style="background:linear-gradient(135deg,#10b981,#34d399);color:#000;">C2</div>
+        <div class="seg-info">
+          <h4>Delivery</h4>
+          <p>末段配送到客户手中</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orchestration Layers -->
+  <div class="view" id="view-layers">
+    <div class="layers-stack">
+      <div class="layer-row" onclick="toggleLayer(this)">
+        <div class="layer-num" style="background:linear-gradient(135deg,#ef4444,#f87171);color:#fff;">L1</div>
+        <div class="layer-info">
+          <h4>Order Intake</h4>
+          <p>订单接入 -- 模板初筛</p>
+          <div class="layer-expanded">
+            <div class="layer-detail">接收外部订单，验证参数，匹配SKU模板。根据发货点/收货点自动关联VAS站点和航线。</div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-row" onclick="toggleLayer(this)">
+        <div class="layer-num" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;">L2</div>
+        <div class="layer-info">
+          <h4>Dispatch Planning</h4>
+          <p>调度规划 -- 模拟推演</p>
+          <div class="layer-expanded">
+            <div class="layer-detail">多方案推演，评估各VAS/无人机/骑手组合的可行性和成本。选出最优方案。</div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-row" onclick="toggleLayer(this)">
+        <div class="layer-num" style="background:linear-gradient(135deg,#10b981,#34d399);color:#000;">L3</div>
+        <div class="layer-info">
+          <h4>Resource Allocation</h4>
+          <p>资源分配 -- 因子查询 + 方案拼合</p>
+          <div class="layer-expanded">
+            <div class="layer-detail">查询注册资源的实时可用状态，拼合A-B-C三段资源包。渐进式锁定，从软锁到硬锁到原子锁。</div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-row" onclick="toggleLayer(this)">
+        <div class="layer-num" style="background:linear-gradient(135deg,#00f0ff,#0ea5e9);color:#000;">L4</div>
+        <div class="layer-info">
+          <h4>Execution Monitor</h4>
+          <p>执行监控 -- 实时追踪</p>
+          <div class="layer-expanded">
+            <div class="layer-detail">监控订单执行全链路。GPS定位、电池电量、ETA滚动更新。OrderTracer追踪系统，6阶段全覆盖。</div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-row" onclick="toggleLayer(this)">
+        <div class="layer-num" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;">L5</div>
+        <div class="layer-info">
+          <h4>Exception Handling</h4>
+          <p>异常处理 -- 地面兜底</p>
+          <div class="layer-expanded">
+            <div class="layer-detail">异常分级响应：轻微→重试，中等→降级(地面兜底)，严重→取消+赔付。电池三层动态阈值保障安全。</div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-row" onclick="toggleLayer(this)">
+        <div class="layer-num" style="background:linear-gradient(135deg,#ec4899,#f472b6);color:#fff;">L6</div>
+        <div class="layer-info">
+          <h4>Settlement Analytics</h4>
+          <p>结算分析 -- 数据闭环</p>
+          <div class="layer-expanded">
+            <div class="layer-detail">订单完成后自动结算。多方分账(VAS/OP/骑手平台)。数据分析驱动运营优化。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supply Model -->
+  <div class="view" id="view-supply">
+    <div class="supply-grid">
+      <div class="supply-card">
+        <div class="supply-top">
+          <div class="supply-icon" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">V</div>
+          <div>
+            <h3 style="font-size:1.1rem;">VAS Station</h3>
+            <div class="supply-tag" style="background:rgba(124,58,237,0.2);color:#a78bfa;">Direct Registration</div>
+          </div>
+        </div>
+        <div class="supply-body">
+          <strong>Registration:</strong> Station / Pad / Crew<br>
+          <strong>Dispatch:</strong> SP directly schedules<br>
+          <strong>Resources:</strong> Landing pad + Energy + Crew = Atomic bundle<br>
+          <strong>Key Rule:</strong> Origin VAS bundle includes drone; Destination does not
+        </div>
+      </div>
+      <div class="supply-card">
+        <div class="supply-top">
+          <div class="supply-icon" style="background:linear-gradient(135deg,#00f0ff,#0ea5e9);">O</div>
+          <div>
+            <h3 style="font-size:1.1rem;">OP Operator</h3>
+            <div class="supply-tag" style="background:rgba(0,240,255,0.15);color:#00f0ff;">Direct Registration</div>
+          </div>
+        </div>
+        <div class="supply-body">
+          <strong>Registration:</strong> Operator / Model / Individual drone<br>
+          <strong>Dispatch:</strong> SP selects drone, OP approves flight<br>
+          <strong>Key Rule:</strong> Drone ownership at OP, custody at VAS, scheduling at SP<br>
+          <strong>Flight = custody transfer:</strong> Origin VAS -> Destination VAS
+        </div>
+      </div>
+      <div class="supply-card">
+        <div class="supply-top">
+          <div class="supply-icon" style="background:linear-gradient(135deg,#10b981,#34d399);">R</div>
+          <div>
+            <h3 style="font-size:1.1rem;">Rider Platform</h3>
+            <div class="supply-tag" style="background:rgba(16,185,129,0.2);color:#34d399;">Platform Registration</div>
+          </div>
+        </div>
+        <div class="supply-body">
+          <strong>Registration:</strong> Platform-level (SF / Dada / In-house)<br>
+          <strong>Dispatch:</strong> SP broadcasts demand -> Platforms bid -> Winner dispatches internally<br>
+          <strong>Key Rule:</strong> SP never selects individual riders<br>
+          <strong>C-segment:</strong> ETA-driven pre-dispatch for seamless handoff
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="view" id="view-tech">
+    <div class="tech-grid">
+      <div class="tech-item"><div class="icon">TS</div><div class="name">TypeScript</div><div class="role">Full Stack</div></div>
+      <div class="tech-item"><div class="icon">N</div><div class="name">Node.js</div><div class="role">Runtime</div></div>
+      <div class="tech-item"><div class="icon">NX</div><div class="name">Next.js</div><div class="role">Frontend</div></div>
+      <div class="tech-item"><div class="icon">WS</div><div class="name">WebSocket</div><div class="role">Real-time</div></div>
+      <div class="tech-item"><div class="icon">TW</div><div class="name">Tailwind</div><div class="role">Styling</div></div>
+      <div class="tech-item"><div class="icon">PM</div><div class="name">PM2</div><div class="role">Process Mgr</div></div>
+      <div class="tech-item"><div class="icon">NG</div><div class="name">Nginx</div><div class="role">Reverse Proxy</div></div>
+      <div class="tech-item"><div class="icon">DK</div><div class="name">Docker</div><div class="role">Container</div></div>
+      <div class="tech-item"><div class="icon">GD</div><div class="name">Amap API</div><div class="role">Map & Route</div></div>
+      <div class="tech-item"><div class="icon">AI</div><div class="name">LLM 26 Tools</div><div class="role">AI Assistant</div></div>
+      <div class="tech-item"><div class="icon">JT</div><div class="name">Jest</div><div class="role">7283 Tests</div></div>
+      <div class="tech-item"><div class="icon">AL</div><div class="name">Alibaba Cloud</div><div class="role">Production</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <h3 id="modal-title"></h3>
+    <div class="modal-sub" id="modal-sub"></div>
+    <p id="modal-body"></p>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="line1">COSMO Platform -- Architecture Overview</div>
+  <div class="line2">cosmo.ijinli.net</div>
+</div>
+
+<script>
+// Animated counters
+function animateCounter(id, target, duration) {
+  const el = document.getElementById(id);
+  const start = 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + (target - start) * eased);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+setTimeout(() => {
+  animateCounter('stat-modules', 31, 1500);
+  animateCounter('stat-tests', 7283, 2000);
+}, 300);
+
+// Tab navigation
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-' + tab.dataset.view).classList.add('active');
+  });
+});
+
+// Toggle service card
+function toggleCard(card) {
+  card.classList.toggle('expanded');
+}
+
+// Toggle layer
+function toggleLayer(row) {
+  row.classList.toggle('expanded');
+}
+
+// Module detail modal
+function showModule(title, sub, body) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-sub').textContent = sub;
+  document.getElementById('modal-body').textContent = body;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+// Touch support for mobile
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+
+</body>
+</html>
