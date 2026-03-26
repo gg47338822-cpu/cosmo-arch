@@ -4,38 +4,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>COSMO Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0e17;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;color:#e2e8f0;touch-action:none}
+body{background:#2C2C2C;overflow:hidden;font-family:'Noto Sans SC',system-ui,sans-serif;color:#F5F3EE;touch-action:none}
 canvas{display:block}
 
 .hud-top{position:fixed;top:0;left:0;right:0;padding:16px 20px;z-index:20;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
 .hud-top *{pointer-events:auto}
-.logo{font-size:1.4rem;font-weight:800;letter-spacing:6px;background:linear-gradient(135deg,#00f0ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo-sub{font-size:0.55rem;color:#64748b;letter-spacing:3px;margin-top:2px}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;letter-spacing:8px;color:#C23A2E}
+.logo-sub{font-size:0.55rem;color:#6B6660;letter-spacing:3px;margin-top:2px;font-family:'Noto Serif SC',serif}
 
 .view-btns{display:flex;gap:6px}
-.view-btn{padding:6px 14px;border-radius:16px;border:1px solid rgba(0,240,255,0.2);background:transparent;color:#64748b;font-size:0.7rem;cursor:pointer;transition:all 0.3s}
-.view-btn.active,.view-btn:hover{background:rgba(0,240,255,0.1);border-color:#00f0ff;color:#00f0ff}
+.view-btn{padding:6px 14px;border-radius:16px;border:1px solid rgba(196,185,154,0.3);background:transparent;color:#6B6660;font-size:0.7rem;cursor:pointer;transition:all 0.3s;font-family:inherit}
+.view-btn.active,.view-btn:hover{background:rgba(194,58,46,0.08);border-color:#C23A2E;color:#C23A2E}
 
-.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(17,24,39,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(0,240,255,0.15);padding:20px;z-index:30;transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);max-height:50vh;overflow-y:auto;border-radius:20px 20px 0 0}
+.panel{position:fixed;bottom:0;left:0;right:0;background:rgba(245,243,238,0.97);backdrop-filter:blur(20px);border-top:2px solid #C23A2E;padding:20px;z-index:30;transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);max-height:50vh;overflow-y:auto;border-radius:20px 20px 0 0;color:#2C2C2C}
 .panel.show{transform:translateY(0)}
-.panel-handle{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,0.2);margin:0 auto 16px}
-.panel h3{font-size:1.1rem;color:#00f0ff;margin-bottom:4px}
-.panel .panel-type{font-size:0.7rem;color:#7c3aed;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
-.panel p{font-size:0.85rem;line-height:1.7;color:#94a3b8}
+.panel-handle{width:40px;height:4px;border-radius:2px;background:#C4B99A;margin:0 auto 16px}
+.panel h3{font-size:1.1rem;color:#C23A2E;font-family:'Noto Serif SC',serif;margin-bottom:4px}
+.panel .panel-type{font-size:0.7rem;color:#527261;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.panel p{font-size:0.85rem;line-height:1.8;color:#4A4A4A}
 .panel .tags-area{margin-top:10px}
-.panel .tag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:0.65rem;margin:2px;background:rgba(0,240,255,0.1);color:#00f0ff;border:1px solid rgba(0,240,255,0.2)}
-.panel-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#64748b;font-size:1.2rem;cursor:pointer}
+.panel .tag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:0.65rem;margin:2px;background:rgba(82,114,97,0.1);color:#527261;border:1px solid rgba(82,114,97,0.2)}
+.panel-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#6B6660;font-size:1.2rem;cursor:pointer}
 
-.hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:0.7rem;color:rgba(100,116,139,0.6);z-index:10;pointer-events:none;transition:opacity 0.5s}
+.hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:0.7rem;color:rgba(196,185,154,0.6);z-index:10;pointer-events:none;transition:opacity 0.5s}
 
 .hud-stats{position:fixed;top:60px;right:20px;z-index:20;text-align:right;pointer-events:none}
-.hud-stat{font-size:0.65rem;color:#64748b;margin-bottom:4px}
-.hud-stat span{color:#00f0ff;font-weight:700;font-size:0.8rem}
+.hud-stat{font-size:0.65rem;color:#6B6660;margin-bottom:4px}
+.hud-stat span{color:#C23A2E;font-weight:700;font-size:0.8rem;font-family:'Cormorant Garamond',serif}
 
 .legend{position:fixed;bottom:20px;left:20px;z-index:20;pointer-events:none}
-.legend-item{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.65rem;color:#64748b}
+.legend-item{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.65rem;color:#C4B99A}
 .legend-dot{width:8px;height:8px;border-radius:50%}
 </style>
 </head>
@@ -44,7 +45,7 @@ canvas{display:block}
 <div class="hud-top">
   <div>
     <div class="logo">COSMO</div>
-    <div class="logo-sub">Low Altitude Fulfillment Platform</div>
+    <div class="logo-sub">合序智能 / 低空履约平台</div>
   </div>
   <div class="view-btns">
     <button class="view-btn active" data-view="full">Full</button>
@@ -63,14 +64,14 @@ canvas{display:block}
 </div>
 
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>SIM Engine</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#00f0ff"></div>SP Platform</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Web Console</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Supply Resources</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>External</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#C23A2E"></div>SIM / A-Segment</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2C2C2C;border:1px solid #C4B99A"></div>SP / B-Segment</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#527261"></div>Web / C-Segment</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#C4B99A"></div>Supply Resources</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4A7B8C"></div>External</div>
 </div>
 
-<div class="hint" id="hint">Drag nodes / Pinch to zoom / Tap for details</div>
+<div class="hint" id="hint">Drag / Pinch zoom / Tap for details</div>
 
 <div class="panel" id="panel">
   <div class="panel-handle"></div>
@@ -84,130 +85,168 @@ canvas{display:block}
 <canvas id="c"></canvas>
 
 <script>
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-let W, H, dpr;
+var canvas = document.getElementById('c');
+var ctx = canvas.getContext('2d');
+var W, H, dpr;
 
 function resize() {
   dpr = window.devicePixelRatio || 1;
-  W = window.innerWidth;
-  H = window.innerHeight;
-  canvas.width = W * dpr;
-  canvas.height = H * dpr;
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 resize();
 window.addEventListener('resize', resize);
 
-let camX = 0, camY = 0, camScale = 1;
-let targetCamX = 0, targetCamY = 0, targetCamScale = 1;
+var camX = 0, camY = 0, camScale = 1;
+var targetCamX = 0, targetCamY = 0, targetCamScale = 1;
 
-const COLORS = {
-  sim: '#7c3aed', sp: '#00f0ff', web: '#10b981', supply: '#f59e0b', external: '#ef4444'
+// COSMO palette
+var C = {
+  vermillion: '#C23A2E',  // A段 朱砂
+  ink: '#F5F3EE',         // on dark bg, use rice-paper for ink text
+  inkDark: '#2C2C2C',     // B段 墨
+  pine: '#527261',        // C段 松
+  bamboo: '#C4B99A',      // 竹 辅助
+  stone: '#6B6660',       // 石 次要
+  ricePaper: '#F5F3EE',   // 宣纸
+  info: '#4A7B8C',        // 信息蓝
+  warning: '#946B00'      // 深金
 };
 
-const nodes = [];
-const edges = [];
+var GCOLORS = {
+  sim: C.vermillion,
+  sp: C.bamboo,
+  web: C.pine,
+  supply: C.warning,
+  external: C.info
+};
+
+var nodes = [], edges = [];
 
 function N(label, group, x, y, r, type, title, desc, tags) {
-  const n = { id: nodes.length, label, group, x, y, ox: x, oy: y, vx: 0, vy: 0, r, type, title: title||label, desc: desc||'', tags: tags||[], visible: true };
+  var n = { id: nodes.length, label:label, group:group, x:x, y:y, ox:x, oy:y, vx:0, vy:0, r:r, type:type, title:title||label, desc:desc||'', tags:tags||[], visible:true, dragging:false };
   nodes.push(n);
   return n;
 }
 
 function E(a, b, label, width, animated) {
-  edges.push({ a, b, label: label||'', width: width||1, animated: !!animated });
+  edges.push({ a:a, b:b, label:label||'', width:width||1, animated:!!animated });
 }
 
-// === DEFINE ARCHITECTURE ===
-const sim = N('SIM Engine', 'sim', 0, -250, 40, 'service',
+// ========== ARCHITECTURE ==========
+// Services (L1)
+var sim = N('SIM Engine', 'sim', 0, -220, 44, 'service',
   'SIM Engine | Port 4010',
   '虚拟世界的因子状态源。管理仿真时钟、因子状态、行为策略、订单生成。不做业务决策，只提供状态查询和WebSocket通知。已完成配置化+阶段模型重写(Phase 0-7)。',
   ['Clock','Factor State','Behavior','Order Gen','Route','Config']);
 
-const sp = N('SP Platform', 'sp', 0, 0, 50, 'service',
+var sp = N('SP Platform', 'sp', 0, 30, 54, 'service',
   'SP Platform | Port 4000 | Decision Hub',
-  '系统的唯一决策中枢。六层编排(L1-L6)、渐进式锁定(软锁-硬锁-原子锁)、订单状态机、ETA管理。协调三类供给资源完成A-B-C三段配送。God Object已拆分(3039-423行,11模块)。',
-  ['Order Engine','SKU Orch','Lock','ETA','Supply Registry','Dispatch','Bidding','Exception','Settlement','AI 26 Tools']);
+  '系统的唯一决策中枢。六层编排(L1-L6)、渐进式锁定(软锁-硬锁-原子锁)、订单状态机、ETA管理。协调三类供给资源完成A-B-C三段配送。God Object已拆分(3039->423行,11模块)。',
+  ['L1-L6','Order State Machine','Progressive Lock','ETA','Supply Registry','AI 26 Tools']);
 
-const web = N('Web Console', 'web', 0, 250, 38, 'service',
+var web = N('Web Console', 'web', 0, 280, 40, 'service',
   'Web Console | Port 3000 | Next.js',
   '控制塔视角前端。实时地图(DJI/Uber/DoorDash三模式)、仿真控制台(三态)、因子监控7卡片、订单详情七段进度、AI浮动面板。双层Polyline路线动画 rAF 60fps。',
   ['Map View','Sim Lab','Dashboard','Orders','Factor Monitor','AI Panel']);
 
-// SIM sub-modules
-const simClock = N('Clock Engine', 'sim', -200, -380, 18, 'module', 'Clock Engine | SIM', '仿真时钟管理，支持倍速控制(1x/2x/5x/10x)。驱动所有因子的时间轴推进，是仿真世界的心跳。已升级为7组独立计时序列。');
-const simFactor = N('Factor State', 'sim', -60, -400, 18, 'module', 'Factor State Manager | SIM', '管理所有因子(无人机/骑手/VAS站点)的实时状态。提供状态查询API和WebSocket变化通知。GPS坐标、电池电量、任务状态实时更新。');
-const simBehavior = N('Behavior', 'sim', 80, -400, 16, 'module', 'Behavior Strategy | SIM', '模拟无订单时因子的自发行为：无人机在VAS待命、骑手随机移动、站点空闲周期。加入随机事件(故障/天气/拒单)测试异常处理。');
-const simOrder = N('Order Gen', 'sim', 200, -380, 16, 'module', 'Order Generator | SIM', '模拟外部订单平台，按配置生成测试订单。已验证2000单批量仿真。支持目标总量订单生成模式。');
-const simRoute = N('Route Dist', 'sim', -160, -320, 14, 'module', 'Route Distance | SIM', '集成高德API计算真实路线距离和ETA。带缓存层避免重复调用。');
-const simConfig = N('Config Reg', 'sim', 180, -320, 14, 'module', 'Config Registry | SIM', '5组配置集中管理：停留时间(D1-D13共17项)、速度参数、电池模型(5.3%/km)、天气因子、阶段序列。');
+// SIM modules (L2)
+var simClock = N('Clock', 'sim', -220, -360, 16, 'module', 'Clock Engine | SIM', '仿真时钟管理，倍速控制(1x/2x/5x/10x)。驱动所有因子时间轴推进。已升级7组独立计时序列。');
+var simFactor = N('Factor State', 'sim', -80, -380, 16, 'module', 'Factor State | SIM', '管理无人机/骑手/VAS站点实时状态。API查询+WebSocket通知。GPS/电池/任务实时更新。');
+var simBehavior = N('Behavior', 'sim', 60, -380, 14, 'module', 'Behavior Strategy | SIM', '模拟无订单时因子自发行为。随机事件(故障/天气/拒单)测试异常处理能力。');
+var simOrder = N('Order Gen', 'sim', 200, -360, 14, 'module', 'Order Generator | SIM', '模拟外部订单，已验证2000单批量仿真。支持目标总量模式。');
+var simRoute = N('Route API', 'sim', -180, -290, 12, 'module', 'Route Distance | SIM', '高德API真实路线距离+ETA计算。带缓存。');
+var simConfig = N('Config', 'sim', 180, -290, 12, 'module', 'Config Registry | SIM', '5组配置：停留时间17项/速度/电池(5.3%/km)/天气/阶段序列。');
+var simStage = N('Stage Model', 'sim', -40, -310, 12, 'module', 'Stage Model | SIM', '百分比模型升级为7组独立计时序列。精确阶段推进和ETA。');
+var simEvent = N('Events', 'sim', 120, -310, 11, 'module', 'Random Events | SIM', '故障注入、天气变化、拒单模拟。');
 
-// SP sub-modules
-const spOrder = N('Order Engine', 'sp', -280, -80, 20, 'module', 'Order Engine | SP', '订单全生命周期状态机。Hot/Cold双层持久化，业务订单永不丢失。7283测试全量通过。');
-const spSKU = N('SKU Orch', 'sp', -280, 60, 16, 'module', 'SKU Orchestration | SP', '根据SKU配置组合A-B-C三段资源包。时间源一致性审计(240处扫描+30处修复)。');
-const spLock = N('Prog Lock', 'sp', -180, 130, 16, 'module', 'Progressive Lock | SP', '三级锁定：软锁(状态触发)-硬锁(ETA触发)-原子锁(资源包锁定)。资源唯一ID审计(三阶段锁)。');
-const spETA = N('ETA Track', 'sp', 280, -80, 18, 'module', 'ETA Tracking | SP', 'ETA计算和滚动更新。偏差预警，驱动C段骑手R4预派发。ETA驱动R规则改造。');
-const spSupply = N('Supply Reg', 'sp', 280, 40, 18, 'module', 'Supply Registry | SP', '三类资源注册中心：VAS站点(直接)、OP无人机(直接)、骑手平台(平台级)。');
-const spBid = N('Rider Bid', 'sp', 280, 130, 14, 'module', 'Rider Bidding | SP', '向骑手平台(闪送/达达/自建)广播需求，收集服务承诺，择优选择。SP不干预内部派单。');
-const spAI = N('AI Assistant', 'sp', -80, 130, 14, 'module', 'LLM Assistant | SP', '26个AI工具集成。自然语言查询。CQRS读优化(4表+2视图+寄生写入+采样器)。');
-const spExc = N('Exception', 'sp', 80, 130, 14, 'module', 'Exception Handler | SP', '异常分级：轻微-重试，中等-地面兜底，严重-取消+赔付。电池三层动态阈值。');
+// SP modules (L2)
+var spOrder = N('Order Engine', 'sp', -300, -60, 20, 'module', 'Order Engine | SP', '订单全生命周期状态机。Hot/Cold双层持久化，业务订单永不丢失。');
+var spSKU = N('SKU Orch', 'sp', -300, 70, 16, 'module', 'SKU Orchestration | SP', '根据SKU配置组合A-B-C三段资源包。时间源一致性审计(240处扫描)。');
+var spLock = N('Prog Lock', 'sp', -220, 140, 14, 'module', 'Progressive Lock | SP', '三级锁定：软锁-硬锁-原子锁。资源唯一ID审计(三阶段锁)。');
+var spETA = N('ETA Track', 'sp', 300, -60, 18, 'module', 'ETA Tracking | SP', 'ETA计算滚动更新。偏差预警，驱动C段骑手R4预派发。');
+var spSupply = N('Supply Reg', 'sp', 300, 50, 18, 'module', 'Supply Registry | SP', '三类资源注册：VAS(直接)/OP(直接)/骑手平台(平台级)。');
+var spBid = N('Rider Bid', 'sp', 300, 140, 14, 'module', 'Rider Bidding | SP', '向骑手平台广播需求，收集承诺，择优选择。');
+var spAI = N('AI 26 Tools', 'sp', -120, 140, 14, 'module', 'LLM Assistant | SP', '26个AI工具。自然语言查询。CQRS读优化(4表+2视图)。');
+var spExc = N('Exception', 'sp', 60, 140, 14, 'module', 'Exception | SP', '异常分级：重试/地面兜底/取消赔付。电池三层动态阈值。');
+var spSettle = N('Settlement', 'sp', 160, 140, 12, 'module', 'Settlement | SP', '订单完成后费用计算和多方分账。');
+var spDispatch = N('Dispatch', 'sp', -40, 155, 12, 'module', 'Dispatch Lock | SP', '资源并发控制，防止同一资源被多订单锁定。');
+var spMonitor = N('Auto Monitor', 'sp', 220, -20, 13, 'module', 'Automation Monitor | SP', '自动化监控，因子状态巡检和告警。');
 
-// Web sub-modules
-const webMap = N('Map View', 'web', -200, 320, 18, 'module', 'Map View | Web', 'DJI/Uber/DoorDash三种地图模式。双层Polyline路线动画，rAF 60fps。实时GPS轨迹。');
-const webSim = N('Sim Lab', 'web', -60, 340, 16, 'module', 'Sim Lab | Web', '仿真实验室。ConsoleShell三态(配置-运行-回顾)。配置态三步引导，因子监控7卡片+活动日志。');
-const webDash = N('Dashboard', 'web', 80, 340, 16, 'module', 'Dashboard | Web', '数据看板。订单统计、实时因子状态、活动日志流。WorkspaceSwitcher。深色全适配。');
-const webOrder = N('Orders', 'web', 200, 320, 16, 'module', 'Orders | Web', '订单详情。七段配送进度可视化(A1/A2/VAS-O/B/VAS-D/C1/C2)。段落映射统一。');
+// Web modules (L2)
+var webMap = N('Map View', 'web', -220, 350, 16, 'module', 'Map View | Web', 'DJI/Uber/DoorDash三模式。双层Polyline rAF 60fps。实时GPS轨迹。');
+var webSim = N('Sim Lab', 'web', -80, 370, 14, 'module', 'Sim Lab | Web', '仿真实验室。ConsoleShell三态。配置三步引导，因子监控7卡片。');
+var webDash = N('Dashboard', 'web', 60, 370, 14, 'module', 'Dashboard | Web', '数据看板。订单统计、实时因子、活动日志。深色全适配。');
+var webOrder = N('Orders', 'web', 190, 350, 14, 'module', 'Orders | Web', '七段进度(A1/A2/VAS-O/B/VAS-D/C1/C2)。段落映射统一。');
+var webAI = N('AI Panel', 'web', -150, 320, 12, 'module', 'AI Panel | Web', '浮动入口，拖拽面板，26工具可视化调用。');
+var webFactor = N('Factor Mon', 'web', 140, 320, 12, 'module', 'Factor Monitor | Web', '7类因子实时状态面板。电量/位置/台位占用。');
 
-// Supply resources
-const vas = N('VAS Station', 'supply', -350, 0, 22, 'resource', 'VAS Station | Direct Registration', '起降场。直接注册SP(站点/台位/人员)。资源包=起降台+能源+人员(原子组合)。飞行=托管权转移。', ['Time Slot','Resource Bundle','Cargo','Landing']);
-const op = N('OP Operator', 'supply', 350, 0, 22, 'resource', 'OP Operator | Direct Registration', '无人机资产所有者。直接注册SP(运营商/机型/个体机)。物权OP，托管VAS，选机SP，放飞审批OP。', ['Drone Fleet','Flight Approve','Monitor']);
-const rider = N('Rider Platform', 'supply', 0, 420, 20, 'resource', 'Rider Platform | Platform Registration', '地面运力。平台级注册(闪送/达达/自建)。SP广播-平台竞标-胜出者内部派单。SP不选个体骑手。', ['SF Express','Dada','In-house']);
+// Supply
+var vas = N('VAS Station', 'supply', -380, 30, 24, 'resource', 'VAS Station | Direct Registration', '起降场。直接注册SP(站点/台位/人员)。资源包=起降台+能源+人员(原子组合)。飞行=托管权转移(起点VAS->终点VAS)。', ['Time Slot','Resource Bundle','Cargo Handle','Landing Pad']);
+var op = N('OP Operator', 'supply', 380, 30, 24, 'resource', 'OP Operator | Direct Registration', '无人机资产所有者。直接注册SP(运营商/机型/个体机)。物权OP，托管VAS，选机SP，放飞审批OP。', ['Drone Fleet','Flight Approve','Status Monitor']);
+var rider = N('Rider Platform', 'supply', 0, 460, 22, 'resource', 'Rider Platform | Platform Registration', '地面运力。平台级注册(闪送/达达/自建)。SP广播-平台竞标-胜出者内部派单。SP不选个体骑手。', ['SF Express','Dada','In-house']);
 
 // External
-const merchant = N('Merchant', 'external', -350, -250, 16, 'external', 'Merchant | External', '商家/发货方。通过外部订单平台发起配送请求。');
-const customer = N('Customer', 'external', 350, 250, 16, 'external', 'Customer | External', '收货方/消费者。C段骑手送达的最终目的地。');
+var merchant = N('Merchant', 'external', -380, -220, 16, 'external', 'Merchant | External', '商家/发货方。通过外部订单平台发起配送请求。');
+var customer = N('Customer', 'external', 380, 280, 16, 'external', 'Customer | External', '收货方/消费者。C段骑手送达的最终目的地。');
 
-// Edges
-E(sim, sp, 'WebSocket + REST', 2.5, true);
-E(sp, web, 'Next.js + WS', 2.5, true);
+// ========== EDGES ==========
+// Service connections
+E(sim, sp, 'WebSocket + REST', 3, true);
+E(sp, web, 'Next.js + WS', 3, true);
+
+// SIM -> children
 E(simClock, sim, '', 1); E(simFactor, sim, '', 1); E(simBehavior, sim, '', 1);
 E(simOrder, sim, '', 1); E(simRoute, sim, '', 1); E(simConfig, sim, '', 1);
+E(simStage, sim, '', 1); E(simEvent, sim, '', 1);
+
+// SP -> children
 E(spOrder, sp, '', 1); E(spSKU, sp, '', 1); E(spLock, sp, '', 1);
 E(spETA, sp, '', 1); E(spSupply, sp, '', 1); E(spBid, sp, '', 1);
-E(spAI, sp, '', 1); E(spExc, sp, '', 1);
-E(webMap, web, '', 1); E(webSim, web, '', 1); E(webDash, web, '', 1); E(webOrder, web, '', 1);
-E(vas, sp, 'Direct Dispatch', 1.5, true); E(op, sp, 'Direct + Approve', 1.5, true); E(rider, sp, 'Broadcast Bid', 1.5, true);
-E(merchant, sim, 'Orders', 1); E(customer, rider, 'Delivery', 1);
-E(vas, op, 'Drone Custody', 1);
+E(spAI, sp, '', 1); E(spExc, sp, '', 1); E(spSettle, sp, '', 1);
+E(spDispatch, sp, '', 1); E(spMonitor, sp, '', 1);
+
+// Web -> children
+E(webMap, web, '', 1); E(webSim, web, '', 1); E(webDash, web, '', 1);
+E(webOrder, web, '', 1); E(webAI, web, '', 1); E(webFactor, web, '', 1);
+
+// Supply -> SP
+E(vas, sp, 'Direct Dispatch', 2, true);
+E(op, sp, 'Direct + Approve', 2, true);
+E(rider, sp, 'Broadcast Bid', 2, true);
+
+// Cross
+E(merchant, sim, 'Orders', 1.2);
+E(customer, rider, 'Delivery', 1.2);
+E(vas, op, 'Drone Custody', 1.2, true);
 
 // Physics
 function simulate() {
-  const repulsion = 800, damping = 0.85;
-  for (let i = 0; i < nodes.length; i++) {
-    if (!nodes[i].visible || nodes[i].dragging) continue;
-    let fx = 0, fy = 0;
-    fx -= nodes[i].x * 0.001;
-    fy -= nodes[i].y * 0.001;
-    for (let j = 0; j < nodes.length; j++) {
+  for (var i = 0; i < nodes.length; i++) {
+    var ni = nodes[i];
+    if (!ni.visible || ni.dragging) continue;
+    var fx = 0, fy = 0;
+    fx -= ni.x * 0.0008;
+    fy -= ni.y * 0.0008;
+    for (var j = 0; j < nodes.length; j++) {
       if (i === j || !nodes[j].visible) continue;
-      const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
-      const dist = Math.sqrt(dx*dx + dy*dy) + 1;
-      const force = repulsion * (nodes[i].r + nodes[j].r) / (dist * dist);
-      fx += (dx / dist) * force; fy += (dy / dist) * force;
+      var nj = nodes[j];
+      var dx = ni.x - nj.x, dy = ni.y - nj.y;
+      var dist = Math.sqrt(dx*dx + dy*dy) + 1;
+      var force = 600 * (ni.r + nj.r) / (dist * dist);
+      fx += (dx/dist)*force; fy += (dy/dist)*force;
     }
-    fx += (nodes[i].ox - nodes[i].x) * 0.02;
-    fy += (nodes[i].oy - nodes[i].y) * 0.02;
-    nodes[i].vx = (nodes[i].vx + fx) * damping;
-    nodes[i].vy = (nodes[i].vy + fy) * damping;
-    nodes[i].x += nodes[i].vx;
-    nodes[i].y += nodes[i].vy;
+    fx += (ni.ox - ni.x) * 0.025;
+    fy += (ni.oy - ni.y) * 0.025;
+    ni.vx = (ni.vx + fx) * 0.82;
+    ni.vy = (ni.vy + fy) * 0.82;
+    ni.x += ni.vx; ni.y += ni.vy;
   }
 }
 
-let time = 0, hoveredNode = null;
+var time = 0, hoveredNode = null;
 
 function hexToRgba(hex, a) {
   return 'rgba(' + parseInt(hex.slice(1,3),16) + ',' + parseInt(hex.slice(3,5),16) + ',' + parseInt(hex.slice(5,7),16) + ',' + a + ')';
@@ -222,13 +261,13 @@ function draw() {
 
   ctx.clearRect(0, 0, W, H);
 
-  // BG particles
+  // Subtle texture/particles
   ctx.save();
-  for (let i = 0; i < 60; i++) {
-    const px = ((i * 137.5 + time * 8) % (W + 100)) - 50;
-    const py = ((i * 97.3 + time * 3) % (H + 100)) - 50;
-    ctx.fillStyle = 'rgba(0,240,255,' + (0.03 + Math.sin(time + i) * 0.02) + ')';
-    ctx.fillRect(px, py, 1, 1);
+  for (var i = 0; i < 40; i++) {
+    var px = ((i * 137.5 + time * 5) % (W + 100)) - 50;
+    var py = ((i * 97.3 + time * 2) % (H + 100)) - 50;
+    ctx.fillStyle = 'rgba(196,185,154,' + (0.02 + Math.sin(time + i) * 0.015) + ')';
+    ctx.fillRect(px, py, 1.5, 1.5);
   }
   ctx.restore();
 
@@ -240,24 +279,26 @@ function draw() {
   edges.forEach(function(e) {
     if (!e.a.visible || !e.b.visible) return;
     var isHL = hoveredNode && (e.a === hoveredNode || e.b === hoveredNode);
-    var alpha = hoveredNode ? (isHL ? 0.8 : 0.08) : 0.25;
+    var alpha = hoveredNode ? (isHL ? 0.7 : 0.06) : 0.2;
     ctx.beginPath();
     ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y);
-    ctx.strokeStyle = isHL ? '#00f0ff' : 'rgba(100,116,139,' + alpha + ')';
+    ctx.strokeStyle = isHL ? C.vermillion : hexToRgba(C.bamboo, alpha);
     ctx.lineWidth = isHL ? e.width + 1 : e.width;
     ctx.stroke();
+    // Flow dots
     if (e.animated || isHL) {
-      var t = (time * 0.5) % 1;
-      var dx = e.b.x - e.a.x, dy = e.b.y - e.a.y;
-      ctx.beginPath(); ctx.arc(e.a.x + dx*t, e.a.y + dy*t, 3, 0, Math.PI*2);
-      ctx.fillStyle = '#00f0ff'; ctx.fill();
-      var t2 = (time * 0.5 + 0.5) % 1;
-      ctx.beginPath(); ctx.arc(e.a.x + dx*t2, e.a.y + dy*t2, 2, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(0,240,255,0.5)'; ctx.fill();
+      var t1 = (time * 0.4) % 1;
+      var ddx = e.b.x - e.a.x, ddy = e.b.y - e.a.y;
+      ctx.beginPath(); ctx.arc(e.a.x + ddx*t1, e.a.y + ddy*t1, 3, 0, Math.PI*2);
+      ctx.fillStyle = C.vermillion; ctx.fill();
+      var t2 = (time * 0.4 + 0.5) % 1;
+      ctx.beginPath(); ctx.arc(e.a.x + ddx*t2, e.a.y + ddy*t2, 2, 0, Math.PI*2);
+      ctx.fillStyle = hexToRgba(C.vermillion, 0.4); ctx.fill();
     }
+    // Label
     if (e.label && (isHL || !hoveredNode)) {
-      ctx.font = '9px -apple-system, sans-serif';
-      ctx.fillStyle = isHL ? '#00f0ff' : 'rgba(100,116,139,0.5)';
+      ctx.font = '9px "Noto Sans SC", sans-serif';
+      ctx.fillStyle = isHL ? C.vermillion : hexToRgba(C.bamboo, 0.5);
       ctx.textAlign = 'center';
       ctx.fillText(e.label, (e.a.x+e.b.x)/2, (e.a.y+e.b.y)/2 - 6);
     }
@@ -266,40 +307,52 @@ function draw() {
   // Nodes
   nodes.forEach(function(n) {
     if (!n.visible) return;
-    var isHovered = n === hoveredNode;
+    var isHov = n === hoveredNode;
     var isConn = hoveredNode && edges.some(function(e){ return (e.a===hoveredNode&&e.b===n)||(e.b===hoveredNode&&e.a===n); });
-    var dimmed = hoveredNode && !isHovered && !isConn;
-    var alpha = dimmed ? 0.15 : 1;
-    var col = COLORS[n.group] || '#64748b';
+    var dimmed = hoveredNode && !isHov && !isConn;
+    var alpha = dimmed ? 0.12 : 1;
+    var col = GCOLORS[n.group] || C.stone;
 
-    if ((isHovered || n.type === 'service') && !dimmed) {
-      var grd = ctx.createRadialGradient(n.x, n.y, n.r*0.5, n.x, n.y, n.r*2.5);
-      grd.addColorStop(0, col + '40'); grd.addColorStop(1, col + '00');
+    // Glow for service/hovered
+    if ((isHov || n.type === 'service') && !dimmed) {
+      var grd = ctx.createRadialGradient(n.x, n.y, n.r*0.3, n.x, n.y, n.r*2.8);
+      grd.addColorStop(0, hexToRgba(col, 0.2)); grd.addColorStop(1, hexToRgba(col, 0));
       ctx.fillStyle = grd;
-      ctx.fillRect(n.x - n.r*2.5, n.y - n.r*2.5, n.r*5, n.r*5);
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r*2.8, 0, Math.PI*2); ctx.fill();
     }
 
+    // Circle
     ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
-    ctx.fillStyle = hexToRgba(col, 0.15 * alpha); ctx.fill();
-    ctx.strokeStyle = hexToRgba(col, (isHovered ? 1 : 0.6) * alpha);
-    ctx.lineWidth = isHovered ? 2.5 : 1.5; ctx.stroke();
+    ctx.fillStyle = hexToRgba(col, (n.type==='service' ? 0.12 : 0.08) * alpha);
+    ctx.fill();
+    ctx.strokeStyle = hexToRgba(col, (isHov ? 1 : 0.5) * alpha);
+    ctx.lineWidth = n.type === 'service' ? 2 : (isHov ? 2 : 1);
+    ctx.stroke();
 
+    // Service: double ring + pulse
     if (n.type === 'service' && !dimmed) {
-      var pulse = (Math.sin(time*2+n.id)+1)*0.5;
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r+4+pulse*6, 0, Math.PI*2);
-      ctx.strokeStyle = hexToRgba(col, 0.15*(1-pulse)); ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 4, 0, Math.PI*2);
+      ctx.strokeStyle = hexToRgba(col, 0.2); ctx.lineWidth = 1; ctx.stroke();
+      var pulse = (Math.sin(time*1.8 + n.id) + 1) * 0.5;
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 8 + pulse*8, 0, Math.PI*2);
+      ctx.strokeStyle = hexToRgba(col, 0.08*(1-pulse)); ctx.lineWidth = 1; ctx.stroke();
     }
 
-    ctx.beginPath(); ctx.arc(n.x, n.y, 3, 0, Math.PI*2);
+    // Center dot
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.type==='service' ? 4 : 2.5, 0, Math.PI*2);
     ctx.fillStyle = hexToRgba(col, 0.8*alpha); ctx.fill();
 
-    ctx.font = (n.type==='service'?'600 13':'500 10') + 'px -apple-system, sans-serif';
+    // Label
+    var fontSize = n.type==='service' ? 13 : (n.type==='module' ? 10 : 11);
+    var fontWeight = n.type==='service' ? '700' : '400';
+    ctx.font = fontWeight + ' ' + fontSize + 'px "Noto Sans SC", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillStyle = hexToRgba('#e2e8f0', (isHovered?1:0.8)*alpha);
+    ctx.fillStyle = hexToRgba(C.ricePaper, (isHov ? 1 : 0.75) * alpha);
     ctx.fillText(n.label, n.x, n.y + n.r + 14);
 
+    // Port for services
     if (n.type === 'service' && !dimmed) {
-      ctx.font = '500 9px -apple-system, sans-serif';
+      ctx.font = '500 9px "Cormorant Garamond", serif';
       ctx.fillStyle = hexToRgba(col, 0.6);
       var pm = n.title.match(/Port \d+/);
       if (pm) ctx.fillText(pm[0], n.x, n.y + n.r + 26);
@@ -313,118 +366,103 @@ function draw() {
 // Interaction
 var dragNode = null, isDragging = false, lastTouch = null, pinchDist = null;
 
-function screenToWorld(sx, sy) {
-  return { x: (sx - W/2 - camX) / camScale, y: (sy - H/2 - camY) / camScale };
-}
+function s2w(sx, sy) { return { x:(sx-W/2-camX)/camScale, y:(sy-H/2-camY)/camScale }; }
 
 function findNode(sx, sy) {
-  var p = screenToWorld(sx, sy), best = null, bestD = Infinity;
+  var p = s2w(sx, sy), best = null, bestD = 1e9;
   nodes.forEach(function(n) {
     if (!n.visible) return;
-    var d = Math.sqrt((n.x-p.x)*(n.x-p.x) + (n.y-p.y)*(n.y-p.y));
-    if (d < n.r + 10 && d < bestD) { best = n; bestD = d; }
+    var d = Math.sqrt((n.x-p.x)*(n.x-p.x)+(n.y-p.y)*(n.y-p.y));
+    if (d < n.r+12 && d < bestD) { best=n; bestD=d; }
   });
   return best;
 }
 
 canvas.addEventListener('pointerdown', function(e) {
   var n = findNode(e.clientX, e.clientY);
-  if (n) { dragNode = n; n.dragging = true; isDragging = false; }
-  else { lastTouch = { x: e.clientX, y: e.clientY }; }
-  document.getElementById('hint').style.opacity = '0';
+  if (n) { dragNode=n; n.dragging=true; isDragging=false; }
+  else { lastTouch={x:e.clientX,y:e.clientY}; }
+  document.getElementById('hint').style.opacity='0';
 });
 
 canvas.addEventListener('pointermove', function(e) {
   if (dragNode) {
-    var p = screenToWorld(e.clientX, e.clientY);
-    dragNode.x = p.x; dragNode.y = p.y; isDragging = true;
+    var p=s2w(e.clientX,e.clientY); dragNode.x=p.x; dragNode.y=p.y; isDragging=true;
   } else if (lastTouch) {
-    targetCamX += e.clientX - lastTouch.x;
-    targetCamY += e.clientY - lastTouch.y;
-    lastTouch = { x: e.clientX, y: e.clientY };
+    targetCamX+=e.clientX-lastTouch.x; targetCamY+=e.clientY-lastTouch.y;
+    lastTouch={x:e.clientX,y:e.clientY};
   } else {
-    hoveredNode = findNode(e.clientX, e.clientY);
-    canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
+    hoveredNode=findNode(e.clientX,e.clientY);
+    canvas.style.cursor=hoveredNode?'pointer':'default';
   }
 });
 
-canvas.addEventListener('pointerup', function(e) {
+canvas.addEventListener('pointerup', function() {
   if (dragNode && !isDragging) showPanel(dragNode);
-  if (dragNode) dragNode.dragging = false;
-  dragNode = null; lastTouch = null;
+  if (dragNode) dragNode.dragging=false;
+  dragNode=null; lastTouch=null;
 });
 
 canvas.addEventListener('wheel', function(e) {
   e.preventDefault();
-  targetCamScale = Math.max(0.3, Math.min(3, targetCamScale * (e.deltaY > 0 ? 0.9 : 1.1)));
-}, { passive: false });
+  targetCamScale=Math.max(0.3,Math.min(3,targetCamScale*(e.deltaY>0?0.9:1.1)));
+}, {passive:false});
 
 canvas.addEventListener('touchstart', function(e) {
-  if (e.touches.length === 2) {
-    var dx = e.touches[0].clientX - e.touches[1].clientX;
-    var dy = e.touches[0].clientY - e.touches[1].clientY;
-    pinchDist = Math.sqrt(dx*dx + dy*dy);
+  if (e.touches.length===2) {
+    var dx=e.touches[0].clientX-e.touches[1].clientX;
+    var dy=e.touches[0].clientY-e.touches[1].clientY;
+    pinchDist=Math.sqrt(dx*dx+dy*dy);
   }
-}, { passive: true });
+}, {passive:true});
 
 canvas.addEventListener('touchmove', function(e) {
-  if (e.touches.length === 2 && pinchDist) {
-    var dx = e.touches[0].clientX - e.touches[1].clientX;
-    var dy = e.touches[0].clientY - e.touches[1].clientY;
-    var dist = Math.sqrt(dx*dx + dy*dy);
-    targetCamScale = Math.max(0.3, Math.min(3, targetCamScale * dist / pinchDist));
-    pinchDist = dist;
+  if (e.touches.length===2 && pinchDist) {
+    var dx=e.touches[0].clientX-e.touches[1].clientX;
+    var dy=e.touches[0].clientY-e.touches[1].clientY;
+    var d=Math.sqrt(dx*dx+dy*dy);
+    targetCamScale=Math.max(0.3,Math.min(3,targetCamScale*d/pinchDist));
+    pinchDist=d;
   }
-}, { passive: true });
+}, {passive:true});
 
-canvas.addEventListener('touchend', function() { pinchDist = null; });
+canvas.addEventListener('touchend', function(){pinchDist=null;});
 
-// Panel
 function showPanel(n) {
-  document.getElementById('panel-type').textContent = n.type.toUpperCase() + ' | ' + n.group.toUpperCase();
-  document.getElementById('panel-title').textContent = n.title;
-  document.getElementById('panel-body').textContent = n.desc;
-  var tagsEl = document.getElementById('panel-tags');
-  // Clear existing tags safely
-  while (tagsEl.firstChild) tagsEl.removeChild(tagsEl.firstChild);
-  n.tags.forEach(function(t) {
-    var span = document.createElement('span');
-    span.className = 'tag';
-    span.textContent = t;
-    tagsEl.appendChild(span);
-  });
+  document.getElementById('panel-type').textContent=n.type.toUpperCase()+' | '+n.group.toUpperCase();
+  document.getElementById('panel-title').textContent=n.title;
+  document.getElementById('panel-body').textContent=n.desc;
+  var el=document.getElementById('panel-tags');
+  while(el.firstChild) el.removeChild(el.firstChild);
+  n.tags.forEach(function(t){var s=document.createElement('span');s.className='tag';s.textContent=t;el.appendChild(s);});
   document.getElementById('panel').classList.add('show');
 }
 
-function closePanel() {
-  document.getElementById('panel').classList.remove('show');
-}
+function closePanel(){document.getElementById('panel').classList.remove('show');}
 
-// View switching
-document.querySelectorAll('.view-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.view-btn').forEach(function(b){ b.classList.remove('active'); });
+document.querySelectorAll('.view-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('active');});
     btn.classList.add('active');
-    var v = btn.dataset.view;
-    nodes.forEach(function(n) {
-      switch(v) {
-        case 'full': n.visible = true; break;
-        case 'sim': n.visible = n.group==='sim' || n.type==='service'; break;
-        case 'sp': n.visible = n.group==='sp' || n.group==='supply' || n.type==='service'; break;
-        case 'web': n.visible = n.group==='web' || n.type==='service'; break;
-        case 'flow': n.visible = n.type==='service' || n.type==='resource' || n.type==='external'; break;
+    var v=btn.dataset.view;
+    nodes.forEach(function(n){
+      switch(v){
+        case'full':n.visible=true;break;
+        case'sim':n.visible=n.group==='sim'||n.type==='service';break;
+        case'sp':n.visible=n.group==='sp'||n.group==='supply'||n.type==='service';break;
+        case'web':n.visible=n.group==='web'||n.type==='service';break;
+        case'flow':n.visible=n.type==='service'||n.type==='resource'||n.type==='external';break;
       }
     });
-    targetCamX = 0; targetCamY = 0;
-    if (v==='sim') targetCamY = 100;
-    if (v==='web') targetCamY = -100;
-    targetCamScale = v==='full' ? 0.85 : 1;
+    targetCamX=0;targetCamY=0;
+    if(v==='sim')targetCamY=80;
+    if(v==='web')targetCamY=-80;
+    targetCamScale=v==='full'?0.8:1;
   });
 });
 
-// Init zoom
-if (W < 768) { targetCamScale = 0.6; camScale = 0.6; }
-else { targetCamScale = 0.85; camScale = 0.85; }
+if(W<768){targetCamScale=0.55;camScale=0.55;}
+else{targetCamScale=0.8;camScale=0.8;}
 
 draw();
 </script>
